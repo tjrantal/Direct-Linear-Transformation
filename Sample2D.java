@@ -27,7 +27,7 @@
 import Jama.*;
 import dlt.*;
 
-public class Sample{
+public class Sample2D{
 	 public static void main(String[] args) {
 		double[][] global =  {{0,0}, {29.6, 0}, {0, 21}, {29.6, 21}};  //Global coordinates
 		double[][] calib = {{900,724},{2320, 575},{955, 1711},{ 2610, 1501}};  //Calibration points
