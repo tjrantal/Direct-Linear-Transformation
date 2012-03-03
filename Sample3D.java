@@ -48,7 +48,7 @@ public class Sample3D{
 		for (int c = 0; c< coeffs.size();++c){
 			resultString+="\tCam"+c+"\n";
 			for (int i = 0; i< coeffs.get(c).getRowDimension();++i){
-				resultString+="\t\t"+i+": "+Math.round(coeffs.get(c).get(i,0)*10.0)/10.0+"\n"; 
+				resultString+="\t\t"+i+": "+coeffs.get(c).get(i,0)+"\n"; 
 			}
 		}
 		System.out.println(resultString);

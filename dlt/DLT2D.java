@@ -83,11 +83,6 @@ public class DLT2D{
 		Matrix A = new Matrix(B);
 		Matrix b = new Matrix(C,C.length);
 		Matrix coefficients = A.solve(b);
-		String kertoimet = "Coefficient";
-		for (int i = 0; i< coefficients.getRowDimension();++i){
-			kertoimet+=" "+i+": "+Math.round(coefficients.get(i,0)*10.0)/10.0; 
-		}
-		System.out.println(kertoimet);
 		return coefficients;	
 	}
 
@@ -109,5 +104,9 @@ public class DLT2D{
 		Matrix l2 = new Matrix(L2,L2.length);
 		Matrix result= l1.solve(l2);
 		return result;
+	}
+	
+	public Matrix getCurrentDltCoefficients(){
+		return dltCoefficients;
 	}
 }

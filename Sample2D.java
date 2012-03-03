@@ -35,6 +35,13 @@ public class Sample2D{
 		System.out.println("DLT2D");
 		DLT2D dlt2d = new DLT2D(global,calib);
 		Matrix coordinates = dlt2d.scaleCoordinates(digitizedUnknownPoints);
+		
+		Matrix coeffs = dlt2d.getCurrentDltCoefficients();
+		String resultString = "Coefficients\n";
+		for (int i = 0; i< coeffs.getRowDimension();++i){
+			resultString+="\t"+i+": "+coeffs.get(i,0)+"\n"; 
+		}
+		System.out.println(resultString);
 		System.out.println("X "+coordinates.get(0,0)+" Y "+coordinates.get(1,0));
 	}
 }
