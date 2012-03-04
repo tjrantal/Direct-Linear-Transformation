@@ -79,7 +79,7 @@ public class DLT2D{
 		  B[2*i+1][7]		=-calibrationObjectGlobalCoordinates[i][1]*L[i][1];
 		}
 
-		// Solution for the coefficients
+		//Solve the coefficients
 		Matrix A = new Matrix(B);
 		Matrix b = new Matrix(C,C.length);
 		Matrix coefficients = A.solve(b);
