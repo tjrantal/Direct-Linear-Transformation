@@ -20,8 +20,8 @@
 /*
 	Direct linear transformation (DLT) sample, written by Timo Rantalainen tjrantal@gmail.com.
 	Depends on Jama library http://math.nist.gov/javanumerics/jama/
-	compile javac Sample.java
-	execute java Sample
+	compile javac Sample3D.java
+	execute java Sample3D
 */
 
 import Jama.*;
@@ -31,16 +31,15 @@ import java.util.Vector;
 public class Sample3D{
 	 public static void main(String[] args) {
 	 			//Laitetaan koordinaatit paikoilleen
-		double[][] global = {{0,0,0},{10,0,0},{0,10,0},{10,10,0},{0,0,10},{10,0,10}}; //Global coordinates vasentakaala,ota,vea,oea,vty,oty
+		double[][] global = {{0,0,0},{10,0,0},{0,10,0},{10,10,0},{0,0,10},{10,0,10}}; //Global coordinates of the calibration object
 		double[][][] calib={
 											{{823,591},{833,351},{967,585},{981,330},{616,573},{628,322}},
 											{{1300,647},{1200,484},{1429,492},{1320,327},{1143,654},{1046,480}}
 										};	//Digitized calibration object points
-		double[][] digitizedUnknownPoints = {{855,484},{1292,470}};	//Digitized points N,2 Matrix
-
+		double[][] digitizedUnknownPoint = {{855,484},{1292,470}};	//Digitized unknown point N,2 Matrix
 		System.out.println("DLT3D");
 		DLT3D dlt3d = new DLT3D(global,calib);
-		Matrix coordinates = dlt3d.scaleCoordinates(digitizedUnknownPoints);
+		Matrix coordinates = dlt3d.scaleCoordinates(digitizedUnknownPoint);
 		
 		/*Print out results*/
 		Vector<Matrix> coeffs = dlt3d.getCurrentDltCoefficients(); 

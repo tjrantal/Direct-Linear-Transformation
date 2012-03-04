@@ -20,8 +20,8 @@
 /*
 	Direct linear transformation (DLT) sample, written by Timo Rantalainen tjrantal@gmail.com.
 	Depends on Jama library http://math.nist.gov/javanumerics/jama/
-	compile javac Sample.java
-	execute java Sample
+	compile javac Sample2D.java
+	execute java Sample2D
 */
 
 import Jama.*;
@@ -29,12 +29,12 @@ import dlt.*;
 
 public class Sample2D{
 	 public static void main(String[] args) {
-		double[][] global =  {{0,0}, {29.6, 0}, {0, 21}, {29.6, 21}};  //Global coordinates
-		double[][] calib = {{900,724},{2320, 575},{955, 1711},{ 2610, 1501}};  //Calibration points
-		double[]  digitizedUnknownPoints = {1245.0,919.0};	//Tuntemattoman pisteen digitoidut koordinaatit
+		double[][] global =  {{0,0}, {29.6, 0}, {0, 21}, {29.6, 21}};  //Global coordinates of the calibration object
+		double[][] calib = {{900,724},{2320, 575},{955, 1711},{ 2610, 1501}};  //Digitized calibration object points
+		double[]  digitizedUnknownPoint = {1245.0,919.0};	//Digitized unknown point
 		System.out.println("DLT2D");
 		DLT2D dlt2d = new DLT2D(global,calib);
-		Matrix coordinates = dlt2d.scaleCoordinates(digitizedUnknownPoints);
+		Matrix coordinates = dlt2d.scaleCoordinates(digitizedUnknownPoint);
 		
 		Matrix coeffs = dlt2d.getCurrentDltCoefficients();
 		String resultString = "Coefficients\n";
