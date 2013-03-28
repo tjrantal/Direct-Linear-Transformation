@@ -1,7 +1,4 @@
-function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates)
-	%First use basic DLT to obtain L9 - L11 for the first iteration
-	coefficients = getDLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates);
-
+function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates,coefficients,principalPoint,cam)
 	C = zeros(2*length(digitizedCoordinates),1); %Digitized calibrationObjectGlobalCoordinates coordinates
 	monta = 0;
 	for j =1:length(digitizedCoordinates)
@@ -10,30 +7,25 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 			C(monta) = digitizedCoordinates(j,i);
 		end
 	end
-	%Get u-u0, v-v0 and r
-	principalPoint = getPrincipalPoint(coefficients);
-	c = digitizedCoordinates(i,1)-principalPoint(1);
-	n = digitizedCoordinates(i,2)-principalPoint(2);
-	r = sqrt(c^2+n^2);
 
 	%ITERATE until a converged solution is found
-	testOutput = fopen('testing16Coeffs.tab','w');
-%	for p = 1:length(coefficients)
-%		if p == length(coefficients)
-%			fprintf(testOutput,"%f\n",coefficients(p));
-%		else
-%			fprintf(testOutput,"%f\t",coefficients(p));
-%		end
-%	end
+	testOutput = fopen(['testing16Coeffs' num2str(cam) '.tab'],'w');
+	for p = 1:length(coefficients)
+		if p == length(coefficients)
+			fprintf(testOutput,"%f\n",coefficients(p));
+		else
+			fprintf(testOutput,"%f\t",coefficients(p));
+		end
+	end
 	
 	for iteration = 1:50	
 		B = zeros(2*length(calibrationObjectGlobalCoordinates),16);%Matrix for solving DLT-parameters
 		for i=1:length(calibrationObjectGlobalCoordinates)
 			R = coefficients(9)*calibrationObjectGlobalCoordinates(i,1)+coefficients(10)*calibrationObjectGlobalCoordinates(i,2)+coefficients(11)*calibrationObjectGlobalCoordinates(i,3)+1;
 			%principalPoint = getPrincipalPoint(coefficients);
-			%c = digitizedCoordinates(i,1)-principalPoint(1);
-			%n = digitizedCoordinates(i,2)-principalPoint(2);
-			%r = sqrt(c^2+n^2);
+			c = digitizedCoordinates(i,1)-principalPoint(1);
+			n = digitizedCoordinates(i,2)-principalPoint(2);
+			r = sqrt(c^2+n^2);
 			B(2*i-1,1)		=calibrationObjectGlobalCoordinates(i,1);
 			B(2*i-1,2)		=calibrationObjectGlobalCoordinates(i,2);
 			B(2*i-1,3)		=calibrationObjectGlobalCoordinates(i,3);

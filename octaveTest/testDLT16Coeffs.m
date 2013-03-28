@@ -35,8 +35,28 @@ else
 	save('-mat', dataSaveName, 'cam');%Save the digitization results
 end
 
+
+
 %Calculate DLT-coefficients
-for i = 1%:length(cam)
-	cam(i).coeffs = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);
+for i = 1:length(cam)
+	%Calculate basic DLT-coefficients
+	cam(i).coeffs11 = getDLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);
+	cam(i).principalPoint = getPrincipalPoint(cam(i).coeffs11);
+	cam(i).coeffs16 = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,cam(i).principalPoint);
+	
+end
+
+%Backproject calibrationpoints
+for i = 1:length(cam)
+	figure
+	temp = zeros(size(calibrationFrame,1),2);
+	for j = 1:size(calibrationFrame,1)
+		temp(j,:) = backproject(cam(i).coeffs16, calibrationFrame(j,:));
+ 	end
+ 	cam(i).backprojectedPoints = temp;
+ 	imshow(cam(i).image)
+ 	hold on;
+ 	plot(cam(i).digitizedCoordinates(:,1),cam(i).digitizedCoordinates(:,2),'r.')
+ 	plot(cam(i).backprojectedPoints(:,1),cam(i).backprojectedPoints(:,2),'go')
 end
 
