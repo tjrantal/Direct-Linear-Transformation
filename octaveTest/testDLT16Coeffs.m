@@ -35,8 +35,6 @@ else
 	save('-mat', dataSaveName, 'cam');%Save the digitization results
 end
 
-
-
 %Calculate DLT-coefficients
 for i = 1:length(cam)
 	%Calculate basic DLT-coefficients

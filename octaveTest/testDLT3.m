@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
+calibrationDigitized = 0;%1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'digitizedData2.mat';
 %Corners of the rubic cube squares are used as the calibration object
 %Origin is back lower corner of white side
@@ -22,7 +22,8 @@ calibrationFrame = [0,0,0;1,0,0;2,0,0;3,0,0; ... %White bottom
 					1,1,3;1,2,3;1,3,3; ... %Blue back mid
 					2,1,3;2,2,3;2,3,3; ... %Blue front mid
 										];
-imageNames = {"barrel1.jpg","barrel2.jpg"};
+%imageNames = {"barrel1.jpg","barrel2.jpg"};
+imageNames = {"GOPR0093.JPG","GOPR0099.JPG"};
 
 if calibrationDigitized == 1
 	load(dataSaveName);	%Load digitization

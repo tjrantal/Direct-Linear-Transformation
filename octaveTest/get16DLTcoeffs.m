@@ -17,7 +17,6 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 			fprintf(testOutput,"%f\t",coefficients(p));
 		end
 	end
-	
 	for iteration = 1:50	
 		B = zeros(2*length(calibrationObjectGlobalCoordinates),16);%Matrix for solving DLT-parameters
 		for i=1:length(calibrationObjectGlobalCoordinates)
@@ -67,6 +66,8 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 				fprintf(testOutput,"%f\t",coefficients(p));
 			end
 		end
+		%Get the principal point
+		
 	end
 	%Converged solution was found
 	fclose(testOutput);
