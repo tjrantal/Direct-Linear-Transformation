@@ -22,6 +22,7 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 		for i=1:length(calibrationObjectGlobalCoordinates)
 			R = coefficients(9)*calibrationObjectGlobalCoordinates(i,1)+coefficients(10)*calibrationObjectGlobalCoordinates(i,2)+coefficients(11)*calibrationObjectGlobalCoordinates(i,3)+1;
 			%principalPoint = getPrincipalPoint(coefficients);
+			disp(['iter ' num2str(iteration) ' P1 ' num2str(principalPoint(1)) ' P2 ' num2str(principalPoint(2))]);  
 			c = digitizedCoordinates(i,1)-principalPoint(1);
 			n = digitizedCoordinates(i,2)-principalPoint(2);
 			r = sqrt(c^2+n^2);
@@ -66,8 +67,6 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 				fprintf(testOutput,"%f\t",coefficients(p));
 			end
 		end
-		%Get the principal point
-		
 	end
 	%Converged solution was found
 	fclose(testOutput);

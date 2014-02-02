@@ -22,7 +22,8 @@ calibrationFrame = [0,0,0;1,0,0;2,0,0;3,0,0; ... %White bottom
 					1,1,3;1,2,3;1,3,3; ... %Blue back mid
 					2,1,3;2,2,3;2,3,3; ... %Blue front mid
 										];
-imageNames = {"barrel1.jpg","barrel2.jpg"};
+%imageNames = {"barrel1.jpg","barrel2.jpg"};
+imageNames = {"GOPR0093.JPG","GOPR0099.JPG"};
 
 if calibrationDigitized == 1
 	load(dataSaveName);	%Load digitization
@@ -40,9 +41,11 @@ for i = 1:length(cam)
 	%Calculate basic DLT-coefficients
 	cam(i).coeffs11 = getDLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);
 	cam(i).principalPoint = getPrincipalPoint(cam(i).coeffs11);
-	cam(i).coeffs16 = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,cam(i).principalPoint);
+	cam(i).coeffs16 = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,cam(i).principalPoint,i);
 	
 end
+
+keyboard
 
 %Backproject calibrationpoints
 for i = 1:length(cam)
