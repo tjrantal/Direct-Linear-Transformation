@@ -9,20 +9,30 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 	end
 
 	%ITERATE until a converged solution is found
-	testOutput = fopen(['testing16Coeffs' num2str(cam) '.tab'],'w');
-	for p = 1:length(coefficients)
-		if p == length(coefficients)
-			fprintf(testOutput,"%f\n",coefficients(p));
-		else
-			fprintf(testOutput,"%f\t",coefficients(p));
+	if 0
+		testOutput = fopen(['testing16Coeffs' num2str(cam) '.tab'],'w');
+		for p = 1:length(coefficients)
+			if p == length(coefficients)
+				fprintf(testOutput,"%f\n",coefficients(p));
+			else
+				fprintf(testOutput,"%f\t",coefficients(p));
+			end
+		end
+	else 
+		for p = 1:length(coefficients)
+			if p == length(coefficients)
+				printf("%.2f\n",coefficients(p));
+			else
+				printf("%.2f ",coefficients(p));
+			end
 		end
 	end
 	for iteration = 1:50	
 		B = zeros(2*length(calibrationObjectGlobalCoordinates),16);%Matrix for solving DLT-parameters
+		principalPoint = getPrincipalPoint(coefficients);
+		disp(['cam ' num2str(cam) ' iter ' num2str(iteration) ' P1 ' num2str(principalPoint(1)) ' P2 ' num2str(principalPoint(2))]);  
 		for i=1:length(calibrationObjectGlobalCoordinates)
 			R = coefficients(9)*calibrationObjectGlobalCoordinates(i,1)+coefficients(10)*calibrationObjectGlobalCoordinates(i,2)+coefficients(11)*calibrationObjectGlobalCoordinates(i,3)+1;
-			%principalPoint = getPrincipalPoint(coefficients);
-			disp(['iter ' num2str(iteration) ' P1 ' num2str(principalPoint(1)) ' P2 ' num2str(principalPoint(2))]);  
 			c = digitizedCoordinates(i,1)-principalPoint(1);
 			n = digitizedCoordinates(i,2)-principalPoint(2);
 			r = sqrt(c^2+n^2);
@@ -60,15 +70,27 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 			B(2*i,16)		=(r^2+2*n^2)*R;
 		end
 		coefficients = B\C; %Solve the coefficients w/ least squares method
-		for p = 1:length(coefficients)
-			if p == length(coefficients)
-				fprintf(testOutput,"%f\n",coefficients(p));
-			else
-				fprintf(testOutput,"%f\t",coefficients(p));
+		if 0
+			for p = 1:length(coefficients)
+				if p == length(coefficients)
+					fprintf(testOutput,"%f\n",coefficients(p));
+				else
+					fprintf(testOutput,"%f\t",coefficients(p));
+				end
+			end
+		else 
+			for p = 1:length(coefficients)
+				if p == length(coefficients)
+					printf("%.2f\n",coefficients(p));
+				else
+					printf("%.2f ",coefficients(p));
+				end
 			end
 		end
 	end
 	%Converged solution was found
-	fclose(testOutput);
+	if 0
+		fclose(testOutput);
+	end
 end
 

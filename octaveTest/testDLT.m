@@ -40,7 +40,7 @@ for i = 1:length(cam)
 	cam(i).coeffs = getDLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);
 end
 
-%disp('camera position')
+disp('camera position')
 for i = 1:length(cam)
 	cam(i).position = getCamPosition(cam(i).coeffs);
 	cam(i).principalPoint = getPrincipalPoint(cam(i).coeffs);
@@ -61,5 +61,23 @@ for i = 1:length(cam)
  	plot(cam(i).digitizedCoordinates(:,1),cam(i).digitizedCoordinates(:,2),'r.')
  	plot(cam(i).backprojectedPoints(:,1),cam(i).backprojectedPoints(:,2),'go')
  	
+end
+
+%Plot 3D positions of the markers and the cameras
+figure
+%Markers
+ind =1:16;
+plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'ro','linewidth',5)
+hold on
+ind = 17:28;
+plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'b*','linewidth',5)
+ind = 29:37;
+plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'k+','linewidth',5)
+%Cameras
+colorNames = {'r','b','k'};
+for i =1:length(cam)
+	%plot3(cam(i).position(1),cam(i).position(2),cam(i).position(3),colorNames{i},'linewidth',5)
+	ua = 2*(-cam(i).position/norm(cam(i).position));
+	quiver3(cam(i).position(1),cam(i).position(2),cam(i).position(3),ua(1),ua(2),ua(3),colorNames{i},'linewidth',5)
 end
 
