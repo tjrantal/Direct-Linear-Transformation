@@ -33,5 +33,22 @@ function coefficients = getDLTcoeffs(calibrationObjectGlobalCoordinates,digitize
 		B(2*i,11)		=-calibrationObjectGlobalCoordinates(i,3)*digitizedCoordinates(i,2);
 	end
 	coefficients = B\C; %Solve the coefficients w/ least squares method
+	%Compare to manually calculating, and pseudoinverse
+	coeffManual = inv(B'*B)*(B'*C);
+	coeffPInv = pinv(B)*C;
+	
+	%Calculate Moore-Pentrose pseudoinverse manually
+	%http://people.revoledu.com/kardi/tutorial/LinearAlgebra/SVD.html
+	Bb = B*B';
+	Bc = B'*B;
+	[U, discard] = eig(Bb);
+	[V, discard] = eig(Bc);
+	D = U'*B*V;
+	tol = eps*max(size(D))*max(D(:));
+	Dinv = zeros(size(D,1),size(D,2));
+	Dinv(find(D > tol)) = 1./D(find(D > tol));
+	Dinv = Dinv';
+	coeffPInvManual = (V*Dinv*U')*C;
+	keyboard;
 end
 

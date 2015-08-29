@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-calibrationDigitized = 0;%1; %=0 if you haven't digitized yet, =1 if you have
+calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'digitizedGoPro.mat';
 %Corners of the rubic cube squares are used as the calibration object
 %Origin is back lower corner of white side
@@ -34,7 +34,7 @@ else
 	%	[cam(i).image, discard ,discard] = imread(imageNames{i});
 	%	cam(i).digitizedCoordinates = digitizeCalibration(cam(i).image,calibrationFrame);
 	%end
-	%READ digitized points from text files
+	%READ digitized points from text files. Digitized the images, and created the text files with imageJ 
 	for i = 1:length(imageNames)
 		[cam(i).image, discard ,discard] = imread(imageNames{i});
 		tempCoords = dlmread(coordNames{i},"\t",1,1);
