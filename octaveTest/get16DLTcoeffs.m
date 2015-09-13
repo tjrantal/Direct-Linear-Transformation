@@ -1,4 +1,4 @@
-function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates,coefficients,principalPoint,cam)
+function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates,coefficients,cam)
 	C = zeros(2*length(digitizedCoordinates),1); %Digitized calibrationObjectGlobalCoordinates coordinates
 	monta = 0;
 	for j =1:length(digitizedCoordinates)
@@ -51,7 +51,7 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 			B(2*i-1,13)		=c*r^4*R;
 			B(2*i-1,14)		=c*r^6*R;
 			B(2*i-1,15)		=(r^2+2*c^2)*R;
-			B(2*i-1,16)		=c*n*R;
+			B(2*i-1,16)		=2*c*n*R;
 			B(2*i,1)		=0;
 			B(2*i,2)		=0;
 			B(2*i,3)		=0;
@@ -66,7 +66,7 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 			B(2*i,12)		=n*r^2*R;
 			B(2*i,13)		=n*r^4*R;
 			B(2*i,14)		=n*r^6*R;
-			B(2*i,15)		=n*c*R;
+			B(2*i,15)		=2*n*c*R;
 			B(2*i,16)		=(r^2+2*n^2)*R;
 		end
 		coefficients = B\C; %Solve the coefficients w/ least squares method
@@ -87,6 +87,7 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 				end
 			end
 		end
+		keyboard;
 	end
 	%Converged solution was found
 	if 0
