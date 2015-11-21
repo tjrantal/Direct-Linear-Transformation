@@ -47,7 +47,8 @@ else
 end
 
 %Subsample the image to not run out of memory...
-figure('position',[10 10 1000 500])
+notes = struct();
+notes.fh = figure('position',[10 10 1000 500])
 for i = 1:length(cam)
 	digitizedCoords = cam(i).digitizedCoordinates./5;	%Scale the coordinates down by 5
 	tempImage = cam(i).image;
@@ -56,57 +57,47 @@ for i = 1:length(cam)
 	scaledImage(:,:,2) = imresize(tempImage(:,:,2),0.2,'nearest');
 	scaledImage(:,:,3) = imresize(tempImage(:,:,3),0.2,'nearest');
 	
-	subplot(length(cam),2,i*2-1)
+	notes.sp(i*2-1) = subplot(length(cam),2,i*2-1);
 	imshow(scaledImage,[]);
 	hold on;
 	plot(digitizedCoords(:,1),digitizedCoords(:,2),'r.')
+  %Calculate DLT and backprojection without lens distortion correction
+  notes.ocoeffs(i).coeff = getDLTcoeffs(calibrationFrame,digitizedCoords);
+  notes.obp(i).bp = backproject(notes.ocoeffs(i).coeff,[1.5,0,1.5]);
+  plot(notes.obp(i).bp(1),notes.obp(i).bp(2),'k*')
+  %Backproject all calibrationframe coordinates
+  for cc = 1:size(calibrationFrame,1)
+    bbc = backproject(notes.ocoeffs(i).coeff,calibrationFrame(cc,:));
+   plot(bbc(1),bbc(2),'go');
+  end
+  
+  
 	imSize = size(scaledImage);
 	[K, R, t, rperr] = CalibTsai(digitizedCoords, calibrationFrame, imSize(2)/2, imSize(1)/2);
 	disp(['cam ' num2str(i) ' rperr no correction ' num2str(rperr)]);	
 	%Get distortion coefficients
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0], R, t);
-	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
-	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t);
-	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t);
+	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
+	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t);
 	disp(['cam ' num2str(i) ' rperr with correction ' num2str(rperr)]);
 	%Test calibration
 	undistorted = UndistImage(scaledImage, K, d);
-	subplot(length(cam),2,i*2)
+	notes.sp(i*2) = subplot(length(cam),2,i*2);
 	imshow(undistorted,[])
 	%Plot undistorted digitized points
 	hold on;
-	% Compute the undistorted normalized point
-	wh = size(digitizedCoords,1);
-	k1 = d(1);
-  k2 = d(2);
-  if length(d) == 5
-    
-    k3 = d(5);
-    p1 = d(3); 
-    p2 = d(4);
+  notes.uc(i).coords = undistortCoordinates(digitizedCoords,K,d);
+	plot(notes.uc(i).coords(1,:),notes.uc(i).coords(2,:),'g.')
+  notes.coeffs(i).coeff = getDLTcoeffs(calibrationFrame,notes.uc(i).coords');
+  notes.bp(i).bp = backproject(notes.coeffs(i).coeff,[1.5,0,1.5]);
+  plot(notes.bp(i).bp(1),notes.bp(i).bp(2),'k*')
+  %Backproject all calibrationframe coordinates
+  for cc = 1:size(calibrationFrame,1)
+    bbc = backproject(notes.coeffs(i).coeff,calibrationFrame(cc,:));
+   plot(bbc(1),bbc(2),'ro');
   end
-	xx_u = inv(K)*[digitizedCoords(:,1)';digitizedCoords(:,2)';ones(1,wh)];
-	% Compute the distorted normalized point
-	x_u = xx_u(1, :);
-	y_u = xx_u(2, :);
-	r = sqrt(x_u.^2 + y_u.^2);
-  if length(d) ==5
-    radial = (1 + k1*r.^2 + k2*r.^4  + k3*r.^6);
-    xx_d(1, :) = radial.*x_u + 2*p1*x_u.*y_u + p2*(r.^2 + 2*x_u.^2);
-    xx_d(2, :) = radial.*y_u + p1*(r.^2 + 2*y_u.^2) + 2*p2*x_u.*y_u;
-  else
-    %radial = (1 + k1*r.^2 + k2*r.^4);
-    %Use the inverse to visualise the result
-    radial = 1./(1 + k1*r.^2 + k2*r.^4);
-    xx_d(1, :) = radial.*x_u;
-    xx_d(2, :) = radial.*y_u;
-    
-
-  end
-	xx_d(3, :) = ones(1, wh);
-	% Compute the distorted image point
-	xx_dim = K*xx_d;
-	plot(xx_dim(1,:),xx_dim(2,:),'g.')
+  
 end
+
 
 
