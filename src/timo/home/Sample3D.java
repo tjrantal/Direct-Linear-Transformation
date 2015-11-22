@@ -28,31 +28,45 @@ package timo.home;
 
 import Jama.*;
 import timo.home.dlt.*;
+import timo.home.imagePanel.*;
 import java.util.Vector;
+import java.awt.*;
+import java.awt.image.*;
+import java.io.*;
+import javax.imageio.*;
+import javax.swing.*;
 
-public class Sample3D{
-	 public static void main(String[] args) {
-	 			//Laitetaan koordinaatit paikoilleen
-		double[][] global = {{0,0,0},{10,0,0},{0,10,0},{10,10,0},{0,0,10},{10,0,10}}; //Global coordinates of the calibration object
-		double[][][] calib={
-											{{823,591},{833,351},{967,585},{981,330},{616,573},{628,322}},
-											{{1300,647},{1200,484},{1429,492},{1320,327},{1143,654},{1046,480}}
-										};	//Digitized calibration object points
-		double[][] digitizedUnknownPoint = {{855,484},{1292,470}};	//Digitized unknown point N,2 Matrix
-		System.out.println("DLT3D");
-		DLT3D dlt3d = new DLT3D(global,calib);
-		Matrix coordinates = dlt3d.scaleCoordinates(digitizedUnknownPoint);
-		
-		/*Print out results*/
-		Vector<Matrix> coeffs = dlt3d.getCurrentDltCoefficients(); 
-		String resultString = "Coefficients\n";
-		for (int c = 0; c< coeffs.size();++c){
-			resultString+="\tCam"+c+"\n";
-			for (int i = 0; i< coeffs.get(c).getRowDimension();++i){
-				resultString+="\t\t"+i+": "+coeffs.get(c).get(i,0)+"\n"; 
-			}
-		}
-		System.out.println(resultString);
-		System.out.println("X "+coordinates.get(0,0)+" Y "+coordinates.get(1,0)+" "+coordinates.get(2,0));		
+public class Sample3D extends JFrame{
+	/*Constructor*/
+	public Sample3D(String title){
+		super(title);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+		JComponent cp = new JPanel();
+		cp.add(loadImage("octaveTest/GOPR0093.JPG"));
+		cp.add(loadImage("octaveTest/GOPR0099.JPG"));
+		cp.setOpaque(true); //content panes must be opaque	
+		setContentPane(cp);
+		pack();
+	        setVisible(true);
 	}
+
+	private ImagePanel loadImage(String fileName){
+		BufferedImage img = null;
+		try {
+		    img = ImageIO.read(new File(fileName));
+		} catch (IOException e) {System.out.println("Couldn't read image");}
+		ImagePanel photo = new ImagePanel(img);
+		photo.setOpaque(true);
+		return photo;
+	}
+	/*Main to get things going*/	
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(new Runnable(){
+      			public void run(){
+        			Sample3D mainClass = new Sample3D("Sample 3d");
+        		}
+    		});
+  	}
+	
 }
