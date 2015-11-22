@@ -29,6 +29,8 @@ package timo.home;
 import Jama.*;
 import timo.home.dlt.*;
 import timo.home.imagePanel.*;
+import timo.home.utils.*;
+
 import java.util.Vector;
 import java.awt.*;
 import java.awt.image.*;
@@ -41,16 +43,34 @@ public class Sample3D extends JFrame{
 	public Sample3D(String title){
 		super(title);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
+		//Read digitized data
+		CSVReader[] cr = new CSVReader[2];
+	 	cr[0] = new CSVReader("octaveTest/GoPro0093.xls","\t");
+		cr[1] = new CSVReader("octaveTest/GoPro0099.xls","\t");
+		//Add images
 		JComponent cp = new JPanel();
-		cp.add(loadImage("octaveTest/GOPR0093.JPG"));
-		cp.add(loadImage("octaveTest/GOPR0099.JPG"));
-		cp.setOpaque(true); //content panes must be opaque	
+		ImagePanel[] ip = new ImagePanel[2];
+		ip[0] = loadImage("octaveTest/GOPR0093.JPG");
+		ip[1] = loadImage("octaveTest/GOPR0099.JPG");
+		for (int i =0;i<ip.length;++i){
+			ip[i].plotCoordinates(getCoords(cr[i]));
+			cp.add(ip[i]);
+		}
+		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
 		pack();
 	        setVisible(true);
 	}
 
+	private double[][] getCoords(CSVReader cr){
+		double[][] temp = new double[cr.data.size()-1][2];
+		for (int i = 1; i< cr.data.size();++i){
+			for (int j = 1; j< cr.data.get(i).size();++j){
+				temp[i-1][j-1] = Double.parseDouble(cr.data.get(i).get(j));
+			}
+		}
+		return temp;
+	} 
 	private ImagePanel loadImage(String fileName){
 		BufferedImage img = null;
 		try {
