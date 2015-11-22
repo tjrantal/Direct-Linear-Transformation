@@ -24,8 +24,10 @@
 	execute java Sample3D
 */
 
+package timo.home;
+
 import Jama.*;
-import dlt.*;
+import timo.home.dlt.*;
 import java.util.Vector;
 
 public class Sample3D{

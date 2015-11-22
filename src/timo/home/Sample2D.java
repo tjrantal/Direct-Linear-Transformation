@@ -24,8 +24,10 @@
 	execute java Sample2D
 */
 
+package timo.home;
+
 import Jama.*;
-import dlt.*;
+import timo.home.dlt.*;
 
 public class Sample2D{
 	 public static void main(String[] args) {
