@@ -59,11 +59,11 @@ public class Sample3D extends JFrame{
 		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
 		pack();
-	        setVisible(true);
+	   setVisible(true);
 	}
 
 	private double[][] getCoords(CSVReader cr){
-		double[][] temp = new double[cr.data.size()-1][2];
+		double[][] temp = new double[cr.data.size()-1][cr.data.get(0).size()-1];
 		for (int i = 1; i< cr.data.size();++i){
 			for (int j = 1; j< cr.data.get(i).size();++j){
 				temp[i-1][j-1] = Double.parseDouble(cr.data.get(i).get(j));
