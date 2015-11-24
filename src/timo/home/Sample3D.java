@@ -30,8 +30,9 @@ import Jama.*;
 import timo.home.dlt.*;
 import timo.home.imagePanel.*;
 import timo.home.utils.*;
+import timo.home.calibration.*;
 
-import java.util.Vector;
+import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
@@ -49,7 +50,14 @@ public class Sample3D extends JFrame{
 		cr[1] = new CSVReader("octaveTest/GoPro0099.xls","\t");
 		cr[2] = new CSVReader("octaveTest/calibrationObject.xls","\t");
 		
+		//Add images
+		JComponent cp = new JPanel();
+		ImagePanel[] ip = new ImagePanel[2];
+		ip[0] = loadImage("octaveTest/GOPR0093.JPG");
+		ip[1] = loadImage("octaveTest/GOPR0099.JPG");
+		
 		double[][] calibrationObject = getCoords(cr[2]);
+		/*
 		System.out.println("");
 		for (int i = 0; i<calibrationObject.length;++i){
 			System.out.print(i+"\t");
@@ -59,12 +67,18 @@ public class Sample3D extends JFrame{
 			System.out.println("");
 			
 		}
-		
-		//Add images
-		JComponent cp = new JPanel();
-		ImagePanel[] ip = new ImagePanel[2];
-		ip[0] = loadImage("octaveTest/GOPR0093.JPG");
-		ip[1] = loadImage("octaveTest/GOPR0099.JPG");
+		*/
+		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
+		for (int i = 0;i<2;++i){
+			System.out.println("Cam "+i);
+			ArrayList<Matrix> KRt = lc.calibrate(getCoords(cr[i]));
+			System.out.println("K");
+			KRt.get(0).print(6,4);
+			System.out.println("R");
+			KRt.get(1).print(6,4);
+			System.out.println("t");
+			KRt.get(2).print(6,4);		
+		}
 		for (int i =0;i<ip.length;++i){
 			ip[i].plotCoordinates(getCoords(cr[i]));
 			cp.add(ip[i]);

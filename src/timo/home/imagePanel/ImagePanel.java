@@ -12,8 +12,12 @@ import java.text.DecimalFormat;	//For rounding text
 public class ImagePanel extends JPanel{
 	BufferedImage bi;
 	double scaleFactor;
+	public int origWidth;
+	public int origHeight;
 	public ImagePanel(BufferedImage biIn){
 		//Scale the image
+		origWidth = biIn.getWidth();
+		origHeight = biIn.getHeight();
 		Image scale =  biIn.getScaledInstance(-1,250,Image.SCALE_SMOOTH);
 		BufferedImage tempBi = new BufferedImage(scale.getWidth(null),scale.getHeight(null),biIn.getType());
 		tempBi.getGraphics().drawImage(scale, 0, 0 , null);
