@@ -44,9 +44,22 @@ public class Sample3D extends JFrame{
 		super(title);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//Read digitized data
-		CSVReader[] cr = new CSVReader[2];
+		CSVReader[] cr = new CSVReader[3];
 	 	cr[0] = new CSVReader("octaveTest/GoPro0093.xls","\t");
 		cr[1] = new CSVReader("octaveTest/GoPro0099.xls","\t");
+		cr[2] = new CSVReader("octaveTest/calibrationObject.xls","\t");
+		
+		double[][] calibrationObject = getCoords(cr[2]);
+		System.out.println("");
+		for (int i = 0; i<calibrationObject.length;++i){
+			System.out.print(i+"\t");
+			for (int j = 0; j<calibrationObject[i].length;++j){
+				System.out.print(calibrationObject[i][j]+"\t");
+			}
+			System.out.println("");
+			
+		}
+		
 		//Add images
 		JComponent cp = new JPanel();
 		ImagePanel[] ip = new ImagePanel[2];
