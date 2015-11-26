@@ -119,7 +119,31 @@ public class LensCalibration{
 			t_lm[0] = t[0]+delta[8];
 			t_lm[1] = t[1]+delta[9];
 			t_lm[2] = t[2]+delta[10];
-			
+			//3D points presented with respect to the camera coordinates
+			double[][] rotTrans = new double[3][4];
+			for (int i = 0; i<3;++i){
+				for (int j = 0; j<3;++j){
+					rotTrans[i][j] = R_lm.get(i,j);
+				}
+			}
+			for (int i = 0; i<3;++i){
+				rotTrans[i][3] = t_lm[i];
+			}
+			double[][] XXw = new double[calib.length][calib[0].length+1];
+			for (int i = 0;i<calib.length;++i){
+				for (int j = 0; j<calib[i].length;++j){
+					XXw[i][j] = calib[i][j];
+				}
+				XXw[i][calib.length] = 1;
+			}
+			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
+			//undistorted normalised points
+			double[] xu = new double[XXw.length];
+			double[] yu = new double[XXw.length];
+			for (int i = 0; i<xu.length;++i){
+				xu[i] = XXc.get(0,i)/XXc.get(2,i);
+				yu[i] = XXc.get(1,i)/XXc.get(2,i);
+			}
 			//JATKA TASTA
 			
 		}
