@@ -63,85 +63,83 @@ public class LensCalibration{
 		@return KdRt ArrayList<Matrix> of camera intrinsic matrix, lens distortion coefficients, rotation matrix, and translation vector (in matrix)
 	*/
 	public ArrayList<Matrix> refine(){
-		//IMPLEMENT calibration here
-		double centred[][] = new double[digitizedCalibrationObjectCoordinates.length][2];
-		
-		for (int i = 0; i<centred.length;++i){
-			centred[i][0] = digitizedCalibrationObjectCoordinates[i][0]-u0;
-			centred[i][1] = digitizedCalibrationObjectCoordinates[i][1]-v0;
+		//Start refining calibration
+		double[][] r = R.getArray();
+		double theta = Math.acos((trace(r)-1d)/2d);
+		double[] w;
+		if (theta<Math.ulp(0d)){
+			w = new double[3];
+		}else{
+			w = {
+				theta/(2*Math.sin(theta))*(R.get(2,1)-R.get(1,2)),
+				theta/(2*Math.sin(theta))*(R.get(0,2)-R.get(2,0)),
+				theta/(2*Math.sin(theta))*(R.get(1,0)-R.get(0,1)),
+			};
 		}
-		/*Prep the matrix for SVD*/
-		double[][] M = new double[centred.length][8];
-		double[][] calib = calibrationObjectGlobalCoordinates.getArray();
-		for (int i = 0; i<centred.length;++i){
-			M[i][0] = centred[i][0]*calib[i][0];
-			M[i][1] = centred[i][0]*calib[i][1];
-			M[i][2] = centred[i][0]*calib[i][2];
-			M[i][3] = centred[i][0];
-			M[i][4] = -centred[i][1]*calib[i][0];
-			M[i][5] = -centred[i][1]*calib[i][1];
-			M[i][6] = -centred[i][1]*calib[i][2];
-			M[i][7] = -centred[i][1];
-		}
-		SingularValueDecomposition svd = new SingularValueDecomposition(new Matrix(M));
-		Matrix V = svd.getV();
-		double scale = 1/Math.sqrt(Math.pow(V.get(0,7),2d)+Math.pow(V.get(1,7),2d)+Math.pow(V.get(2,7),2d));
-		double alpha = scale*Math.sqrt(Math.pow(V.get(4,7),2d)+Math.pow(V.get(5,7),2d)+Math.pow(V.get(6,7),2d));
+		int noPnts = digit.length
+		int noParam = 11+d.length;
+		double[] param = new double(noParam);
+		double[][] K_lm = new double[3][3];
+		Matrix R_lm;
+		double[] w_lm = new double[3];
+		double[] t_lm = new double[3];
+		double[][] J = new double[2*noPnts][noParam];
+		double[] dist_lm = new double[2*noPnts];
+		double[] delta = new double[2*noParam];
+		double rperr = Double.POSITIVE_INFINITY; 
 		
-		if (scale*centred[0][1]*(V.get(0,7)*calib[0][0] + V.get(1,7)*calib[0][1] + V.get(2,7)*calib[0][2] + V.get(3,7)) < 0){
-    		scale = -scale;
-    	}
-		
-		double[][] r = new double[3][3];
-		r[0][0] = scale*V.get(4,7)/alpha;
-		r[0][1] = scale*V.get(5,7)/alpha;
-		r[0][2] = scale*V.get(6,7)/alpha;
-		r[1][0] = scale*V.get(0,7);
-		r[1][1] = scale*V.get(1,7);
-		r[1][2] = scale*V.get(2,7);
-		double[] t = new double[3];
-		t[0] = scale*V.get(7,7)/alpha;
-		t[1] = scale*V.get(3,7);
-		r = getCross(r);
-		SingularValueDecomposition svd2 = new SingularValueDecomposition(new Matrix(r));
-		Matrix R = svd2.getU().times(svd2.getV().transpose());
-		
-		//Compute fx, fy, and tz
-		double[] Xc = new double[calib.length];
-		double[] Yc = new double[calib.length];
-		double[] Zc_tz = new double[calib.length];
-		for (int i =0;i<calib.length;++i){
-			Xc[i]		= R.get(0,0)*calib[i][0] + R.get(0,1)*calib[i][1] + R.get(0,2)*calib[i][2] + t[0];
-			Yc[i] 	=  R.get(1,0)*calib[i][0] + R.get(1,1)*calib[i][1] + R.get(1,2)*calib[i][2] + t[1];
-			Zc_tz[i]	= R.get(2,0)*calib[i][0] + R.get(2,1)*calib[i][1] + R.get(2,2)*calib[i][2];
-		}
-		
-		double[][] A = new double[centred.length*2][2];
-		double[] B = new double[centred.length*2];
-		
-		for (int i = 0; i<centred.length;++i){
-			A[2*i][0]	= Xc[i];
-			A[2*i][1]	= -centred[i][0];
-			A[2*i+1][0] = Yc[i]/alpha;
-			A[2*i+1][1] = -centred[i][1];
+		for (int n = 0;n<30;++n){
+			//Camera intrinsic parameters
+			K_lm[0][0] = K.get(0,0)+delta[0];	//fx
+			K_lm[1][1] = K.get(1,1)+delta[1];	//fy
+			K_lm[0][2] = K.get(0,2)+delta[2];	//u0
+			K_lm[1][2] = K.get(1,2)+delta[3];	//v0
+			K_lm[0][1] = K.get(0,1)+delta[4];	//s
+			K_lm[2][2] = 1;
 			
-			B[2*i]		= centred[i][0]*Zc_tz[i];
-			B[2*i+1]		= centred[i][1]*Zc_tz[i];
+			//3x1 vector of Rodigrues representation into 3x3 rotation matrix
+			w_lm[0] = w[0]+delta[5];
+			w_lm[1] = w[1]+delta[6];
+			w_lm[2] = w[2]+delta[7];
+			theta = Math.sqrt(w_lm[0]*w_lm[0]+w_lm[1]*w_lm[1]+w_lm[2]*w_lm[2]);
+			R_lm = new Matrix({{1,0,0},{0,1,0},{0,0,1}});
+			if (theta>=Math.ulp(0d)){				
+				Matrix wh_sk = new Matrix({{0,-w_lm[2],w_lm[1]},{w_lm[2], 0,-w_lm[0]},{-w_lm[1],w_lm[0],0}});
+				wh_sk.timesEquals(1/theta);
+				//3x3 Rotation matrix
+				w = new double{
+					theta/(2*Math.sin(theta))*(R.get(2,1)-R.get(1,2)),
+					theta/(2*Math.sin(theta))*(R.get(0,2)-R.get(2,0)),
+					theta/(2*Math.sin(theta))*(R.get(1,0)-R.get(0,1)),
+				};
+				R_lm.plusEquals(wh_sk.times(Math.sin(theta)));
+				R_lm.plusEquals((wh_sk.times(wh_sk)).times(1-Math.cos(theta)));
+			}
+			//translation vector
+			t_lm[0] = t[0]+delta[8];
+			t_lm[1] = t[1]+delta[9];
+			t_lm[2] = t[2]+delta[10];
+			
+			//JATKA TASTA
+			
 		}
-		Matrix Y = new Matrix(A).inverse().times(new Matrix(B,B.length));
-
-		double[][] K = new double[3][3];
-		K[0][0] = Y.get(0,0);
-		K[0][2] = u0;
-		K[1][1] = Y.get(0,0)/alpha;
-		K[1][2] = v0;
-		K[2][2] = 1;
-		t[2] = Y.get(1,0);
-		KRt = new ArrayList<Matrix>();
-		KRt.add(new Matrix(K));
-		KRt.add(R);
-		KRt.add(new Matrix(t,t.length));
+		
+		//calibration refined
+		KdRt = new ArrayList<Matrix>();
+		KdRt.add(new Matrix(K));
+		KdRt.add(new Matrix(d,d.length));
+		KdRt.add(R);
+		KdRt.add(new Matrix(t,t.length));
 		return getCalibration();
+	}
+	
+	/*Get trace of a N x N matrix*/
+	double trace(double[][] matrix){
+		double temp = 0;
+		for (int i = 0;i<matrix.length;++i){
+			temp+=matrix[i][i];
+		}
+		return temp;
 	}
 	
 	/*calculate cross-product from the first two rows onto the third*/
@@ -153,14 +151,7 @@ public class LensCalibration{
 	}
 	
 	public ArrayList<Matrix> getCalibration(){
-		return KRt;
+		return KdRt;
 	}
 
-	public void setCalibrationObjectGlobalCoordinates(double[][] calibrationObjectGlobalCoordinates){
-		this.calibrationObjectGlobalCoordinates = new Matrix(calibrationObjectGlobalCoordinates);
-	}
-	
-	public void setCalibrationObjectGlobalCoordinates(Matrix calibrationObjectGlobalCoordinates){
-		this.calibrationObjectGlobalCoordinates = calibrationObjectGlobalCoordinates;
-	}
 }
