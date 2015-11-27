@@ -14,6 +14,7 @@
 	<target name="javacompile" description="Compile Java source" >
 		<mkdir dir="${classes}"/>
 		<javac source="1.5" srcdir="${javasrc}" destdir="${classes}" encoding="UTF-8" nowarn="on">
+			<compilerarg line="-Xmaxerrs 5"/>
 		</javac>
 	</target>
   

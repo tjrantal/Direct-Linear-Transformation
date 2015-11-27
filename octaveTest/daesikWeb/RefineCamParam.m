@@ -324,7 +324,6 @@ end
 %% Sub Functions
 function [dxxu_dw, dxxu_dt] = Compute_dxxu(XXw, R, t, w)
 XXc = R*XXw + t;
-
 dxxu_dXXc = Compute_dxxu_dXXc(XXc);
 dXXc_dr   = Compute_dXXc_dr(XXw);
 dr_dw     = Compute_dr_dw(w);

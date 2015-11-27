@@ -31,6 +31,7 @@ import timo.home.dlt.*;
 import timo.home.imagePanel.*;
 import timo.home.utils.*;
 import timo.home.calibration.*;
+import timo.home.refine.*;
 
 import java.util.*;
 import java.awt.*;
@@ -77,8 +78,13 @@ public class Sample3D extends JFrame{
 			System.out.println("R");
 			KRt.get(1).print(6,4);
 			System.out.println("t");
-			KRt.get(2).print(6,4);		
+			KRt.get(2).print(6,4);
+			//Refine the calibration
+			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));		
 		}
+		
+		
+		
 		for (int i =0;i<ip.length;++i){
 			ip[i].plotCoordinates(getCoords(cr[i]));
 			cp.add(ip[i]);
