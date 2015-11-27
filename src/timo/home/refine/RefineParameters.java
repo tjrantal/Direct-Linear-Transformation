@@ -83,9 +83,11 @@ public class LensCalibration{
 		Matrix R_lm;
 		double[] w_lm = new double[3];
 		double[] t_lm = new double[3];
+		double[] d_lm = new double[d.length];
 		double[][] J = new double[2*noPnts][noParam];
 		double[] dist_lm = new double[2*noPnts];
 		double[] delta = new double[2*noParam];
+		double k1,k2,k3,p1,p2,rperr_lm;
 		double rperr = Double.POSITIVE_INFINITY; 
 		
 		for (int n = 0;n<30;++n){
@@ -137,17 +139,44 @@ public class LensCalibration{
 				XXw[i][calib.length] = 1;
 			}
 			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
-			//undistorted normalised points
+			//Various d lengths should be implemented here
+			 k1 = d[0] + delta[11];
+			 k2 = d[1] + delta[12]; 
+          p1 = d[2] + delta[13];
+          p2 = d[3] + delta[14]; 
+          k3 = d[4] + delta[15];
+          d_lm[0] = k1;
+          d_lm[1] = k2;
+          d_lm[2] = p1;
+          d_lm[3] = p2;
+          d_lm[4] = k3;	
 			double[] xu = new double[XXw.length];
 			double[] yu = new double[XXw.length];
+			double[] xd = new double[XXw.length];
+			double[] yd = new double[XXw.length];
+			double[] u = new double[XXw.length];
+			double[] v = new double[XXw.length];
+			double[] r = new double[xu.length];
 			for (int i = 0; i<xu.length;++i){
+				//undistorted coordinates
 				xu[i] = XXc.get(0,i)/XXc.get(2,i);
 				yu[i] = XXc.get(1,i)/XXc.get(2,i);
+				r[i] = Math.sqrt(xu[i]*xu[i]+yu[i]*yu[i]);
+				//distorted coordinates
+				xd[i] = xu[i]*(1 + k1*r[i]*r[i] + k2*Math.pow(r[i],4d) + k3*Math.pow(r[i],6d)) + 2*p1*xu[i]*yu[i] + p2*(r[i]*r[i] + 2*xu[i]*xy[i]);
+				yd[i] = yu[i]*(1 + k1*r[i]*r[i] + k2*Math.pow(r[i],4d) + k3*Math.pow(r[i],6d)) + p1*(r[i]*r[i] + 2*yu[i]*yu[i]) + 2*p2*xu[i]*yu[i];
+				u[i] = K_lm[0][0]*xd[i] + K_lm[0][1]*yd[i] + K_lm[0][2];
+			   v[i] = K_lm[1][1]*yd[i] + K_lm[1][2];
+			   dist_lm[2*i]	= u[i]-x[i][0];
+			   dist_lm[2*i+1]	= v[i]-x[i][1];
 			}
+			//Reprojection error
+			rperr_lm = Math.sqrt(dot(dist_lm,dist_lm)/noPnts/2);
+			
 			//JATKA TASTA
 			
 		}
-		
+			
 		//calibration refined
 		KdRt = new ArrayList<Matrix>();
 		KdRt.add(new Matrix(K));
@@ -171,6 +200,15 @@ public class LensCalibration{
 		temp[2][0] = temp[0][1]*temp[1][2]-temp[1][1]*temp[0][2];
 		temp[2][1] = temp[0][2]*temp[1][0]-temp[1][2]*temp[0][0];
 		temp[2][2] = temp[0][0]*temp[1][1]-temp[1][0]*temp[0][1];
+		return temp;
+	}
+	
+	/*Calculate the dot product between a and b*/
+	double dot(double[] a, double[] b){
+		double temp = 0;
+		for (int i = 0;i<a.length;++i){
+			temp+=a[i]*b[i];
+		}
 		return temp;
 	}
 	
