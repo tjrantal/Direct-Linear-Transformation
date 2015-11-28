@@ -532,7 +532,7 @@ end
 dxxd_dw = [dxd_dw; dyd_dw];
 dxxd_dt = [dxd_dt; dyd_dt];
 dxxd_dd = [dxd_dd; dyd_dd];
-    
+keyboard;    
     
 function [dxx_dk, dxx_dw, dxx_dt, dxx_dd] = Compute_dxx(xxd, K, d, dxxd_dw, dxxd_dt, dxxd_dd)
 xd = xxd(1);

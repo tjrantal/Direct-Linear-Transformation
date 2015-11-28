@@ -203,10 +203,13 @@ public class RefineParameters{
          		double[] xxu = new double[]{xu[i],yu[i]};
          		double[] xxd = new double[]{xd[i],yd[i]};
          		//The derivative of a undistorted normalized point
-         		Matrix[] dxxu = Compute_dxxu(XXw[i], R, t, w);
+         		Matrix[] dxxu = compute_dxxu(XXw[i], R, t, w);
+         		//The derivative of a distorted normalized point
+            	Matrix[] dxxd = compute_dxxd(xxu, d, dxxu[0], dxxu[1]);
+         		//JATKA TASTA, apufunktiot implementoitu
          	}
 			}
-			//JATKA TASTA, apufunktiot implementoitu
+			
 			
 		}
 			
@@ -251,12 +254,12 @@ public class RefineParameters{
 	}
 	
 	//Helper functions
-	Matrix[] Compute_dxxu(double[] XXw,Matrix R,Matrix t,double[] w){
+	Matrix[] compute_dxxu(double[] XXw,Matrix R,Matrix t,double[] w){
 		Matrix XXc = (R.times(new Matrix(XXw,XXw.length).transpose())).plus(t);
 		
-		Matrix dxxu_dXXc = Compute_dxxu_dXXc(XXc);
-		Matrix dXXc_dr   = Compute_dXXc_dr(XXw);
-		Matrix dr_dw     = Compute_dr_dw(w);
+		Matrix dxxu_dXXc = compute_dxxu_dXXc(XXc);
+		Matrix dXXc_dr   = compute_dXXc_dr(XXw);
+		Matrix dr_dw     = compute_dr_dw(w);
 		Matrix dXXc_dt   = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
 		 
 		Matrix dxxu_dw = (dxxu_dXXc.times(dXXc_dr)).times(dr_dw);
@@ -264,7 +267,7 @@ public class RefineParameters{
 		return new Matrix[]{dxxu_dw,dxxu_dt};
 	}
 	
-	Matrix Compute_dxxu_dXXc(Matrix XXc){
+	Matrix compute_dxxu_dXXc(Matrix XXc){
 		double[][] dxxu_dXXc = new double[2][3];
 		dxxu_dXXc[0][0] = 1/XXc.get(2,0);  
 		dxxu_dXXc[1][0] = 0; 
@@ -275,7 +278,7 @@ public class RefineParameters{
 		return new Matrix(dxxu_dXXc);
 	}
 	
-	Matrix Compute_dXXc_dr(double[] XXw){
+	Matrix compute_dXXc_dr(double[] XXw){
 		double[][] dXXc_dr = new double[3][9];
 		for (int i =0;i<XXw.length;++i){
 			dXXc_dr[0][i*3] = XXw[i];
@@ -285,7 +288,7 @@ public class RefineParameters{
 		return new Matrix(dXXc_dr);
 	}
 	
-	Matrix Compute_dr_dw(double[] w){
+	Matrix compute_dr_dw(double[] w){
 		double wx = w[0];
 		double wy = w[1];
 		double wz = w[2];
@@ -357,5 +360,186 @@ public class RefineParameters{
 				       };
 		}
 		return new Matrix(dr_dw);
+	}
+	
+	Matrix[] compute_dxxd(double[] xxu,double[] d,Matrix dxxu_dw, Matrix dxxu_dt){ 
+		double xu = xxu[0];
+		double yu = xxu[1];
+		double r  = Math.sqrt(xu*xu + yu*yu);
+
+		double[] dxu_dw = new double[(dxxu_dw.getArray())[0].length];
+		double[] dyu_dw = new double[(dxxu_dw.getArray())[1].length];
+		for (int i = 0; i<dxu_dw.length;++i){
+			dxu_dw[i] = dxxu_dw.get(0,i);
+			dyu_dw[i] = dxxu_dw.get(1,i);
+		}
+
+		double[] dxu_dt = new double[(dxxu_dt.getArray())[0].length];
+		double[] dyu_dt = new double[(dxxu_dt.getArray())[1].length];
+		for (int i = 0; i<dxu_dt.length;++i){
+			dxu_dt[i] = dxxu_dt.get(0,i);
+			dyu_dt[i] = dxxu_dt.get(1,i);
+		}
+
+		// The derivative of a radial distortion function
+		//   c = 1 + k1*r^2 + k2*r^4 + k3*r^6;
+		double c=0;
+		double[] dr2_dw = new double[dxu_dw.length];
+		double[] dr2_dt = new double[dxu_dt.length];
+		double[] dc_dw = new double[dxu_dw.length];
+		double[] dc_dt = new double[dxu_dt.length];
+		double[] dc_dk = new double[1];
+		
+		double[] dxr_dw = new double[dxu_dw.length];
+		double[] dyr_dw = new double[dxu_dw.length];
+		double[] dxr_dt = new double[dxu_dt.length];
+		double[] dyr_dt = new double[dxu_dt.length];
+		double[] dxr_dk = new double[1];
+		double[] dyr_dk = new double[1];
+
+		Matrix dxt_dw = null;
+	  	Matrix dyt_dw = null;
+		Matrix dxt_dt = null;
+		Matrix dyt_dt = null;
+
+		double[] dxt_dp = new double[2];
+		double[] dyt_dp = new double[2]; 
+
+		if (d.length >= 1){
+			 //First radial distortion coefficients, k1
+			 double k1 = d[0];
+			 c = 1 + k1*r*r;
+
+			 for (int i = 0;i<dxu_dw.length;++i){
+			 	dr2_dw[i] =2*xu*dxu_dw[i] + 2*yu*dyu_dw[i];
+			 	dc_dw[i] = k1*dr2_dw[i];
+			 }
+			 	
+			 for (int i = 0;i<dxu_dt.length;++i){
+			 	dr2_dt[i] =2*xu*dxu_dt[i] + 2*yu*dyu_dt[i];
+			 	dc_dt[i] = k1*dr2_dt[i];
+			 }		 
+			 dc_dk = new double[]{r*r};
+		}
+
+		 if (d.length >= 2){
+			  //Second radial distortion coefficients, k2
+			  double k2 = d[1];
+			  c = c + k2*Math.pow(r,4d);
+			  for (int i = 0; i<dc_dw.length;++i){
+			  		dc_dw[i] = dc_dw[i]+k2*2*r*r*dr2_dw[i];
+			  }
+			  for (int i = 0; i<dc_dt.length;++i){
+			  		dc_dt[i] = dc_dt[i] + k2*2*r*r*dr2_dt[i];
+			  }
+			  dc_dk = new double[]{dc_dk[0], Math.pow(r,4d)};
+		 }
+
+		 if (d.length == 5){
+			  //Third radial distortion coefficients, k3
+			  double k3 = d[4];
+			  c = c + k3*Math.pow(r,6d);
+			  for (int i = 0; i<dc_dw.length;++i){
+			  		dc_dw[i] = dc_dw[i]+k3*3*Math.pow(r,4d)*dr2_dw[i];
+			  }
+			  for (int i = 0; i<dc_dt.length;++i){
+			  		dc_dt[i] = dc_dt[i] + k3*3*Math.pow(r,4d)*dr2_dt[i];
+			  }
+			  dc_dk = new double[]{dc_dk[0],dc_dk[1], Math.pow(r,6d)};
+		 }
+
+		 if (d.length > 0){
+			  //The derivative of a radially distorted normalized point
+			  for (int i =0;i<dc_dw.length;++i){
+				  dxr_dw[i] = c*dxu_dw[i] + xu*dc_dw[i];
+				  dyr_dw[i] = c*dyu_dw[i] + yu*dc_dw[i];
+				}
+				for (int i =0;i<dc_dt.length;++i){
+				  	dxr_dt[i] = c*dxu_dt[i] + xu*dc_dt[i];
+				  	dyr_dt[i] = c*dyu_dt[i] + yu*dc_dt[i];
+				}
+				dxr_dk = new double[dc_dk.length];
+				dyr_dk = new double[dc_dk.length];
+				for (int i =0;i<dc_dk.length;++i){
+				  	dxr_dk[i] = xu*dc_dk[i];
+				  	dyr_dk[i] = yu*dc_dk[i];
+			  	}
+		 }
+
+
+		 //The derivative of a tangentially distorted normalized point
+		 if (d.length >= 4){
+			  double p1 = d[2];
+			  double p2 = d[3];
+			  
+			  Matrix dxt_dxxu = new Matrix(new double[]{2*p1*yu+6*p2*xu, 2*p1*xu+2*p2*yu},2).transpose();
+			  Matrix dyt_dxxu = new Matrix(new double[]{2*p1*xu+2*p2*yu, 6*p1*yu+2*p2*xu},2).transpose();
+				
+				double[][] tw = new double[dxu_dw.length][2];
+				double[][] tt = new double[dxu_dt.length][2];	
+				for (int i =0;i<tw.length;++i){
+					tw[i][0] = dxu_dw[i];
+					tw[i][1] = dyu_dw[i];
+				}
+				for (int i =0;i<tt.length;++i){
+					tt[i][0] = dxu_dt[i];
+					tt[i][1] = dyu_dt[i];
+				}
+			  dxxu_dw = new Matrix(tw);
+			  dxxu_dt = new Matrix(tt);
+
+			  dxt_dw = dxt_dxxu.times(dxxu_dw);
+			  dyt_dw = dyt_dxxu.times(dxxu_dw);
+
+			  dxt_dt = dxt_dxxu.times(dxxu_dt);
+			  dyt_dt = dyt_dxxu.times(dxxu_dt);
+
+			  dxt_dp = new double[]{2*xu*yu, r*r+2*xu*xu};
+			  dyt_dp = new double[]{r*r+2*yu*yu, 2*xu*yu};
+		 }
+
+
+		//The derivative of a distorted normalized point
+		double[]	dxd_dw = dxr_dw;
+		 double[] dyd_dw = dyr_dw;
+
+		 double[] dxd_dt = dxr_dt;
+		 double[] dyd_dt = dyr_dt;
+
+		 double[] dxd_dd = dxr_dk;
+		 double[] dyd_dd = dyr_dk;
+
+		if (d.length > 2){
+			for (int i = 0;i<dxd_dw.length;++i){
+			 dxd_dw[i] += dxt_dw.get(i,0);
+			 dyd_dw[i] += dyt_dw.get(i,0);
+			}
+			for (int i = 0;i<dxd_dt.length;++i){
+			 dxd_dt[i] += dxt_dt.get(i,0);
+			 dyd_dt[i] += dyt_dt.get(i,0);
+			}
+
+			dxd_dd = new double[]{dxr_dk[0], dxr_dk[1], dxt_dp[0], dxt_dp[1], dxr_dk[2]};
+			dyd_dd = new double[]{dyr_dk[0], dyr_dk[1], dyt_dp[0], dyt_dp[1], dyr_dk[2]};
+		}
+
+		double[][] dxxd_dw = new double[2][dxd_dw.length];
+		for (int i = 0;i<dxd_dw.length;++i){
+			dxxd_dw[0][i] = dxd_dw[i];
+			dxxd_dw[1][i] = dyd_dw[i];
+		}
+		
+		double[][] dxxd_dt = new double[2][dxd_dt.length];
+		for (int i = 0;i<dxd_dw.length;++i){
+			dxxd_dt[0][i] = dxd_dt[i];
+			dxxd_dt[1][i] = dyd_dt[i];
+		}
+		
+		double[][] dxxd_dd = new double[2][dxd_dd.length];
+		for (int i = 0;i<dxd_dw.length;++i){
+			dxxd_dd[0][i] = dxd_dd[i];
+			dxxd_dd[1][i] = dyd_dd[i];
+		}
+		return new Matrix[]{new Matrix(dxxd_dw),new Matrix(dxxd_dt),new Matrix(dxxd_dd)};
 	}
 }
