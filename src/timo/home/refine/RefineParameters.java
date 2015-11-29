@@ -86,7 +86,7 @@ public class RefineParameters{
 		double[][] J = new double[2*noPnts][noParam];
 		double[] dist_lm = new double[2*noPnts];
 		double[] dist = new double[2*noPnts];
-		double[] delta = new double[2*noParam];
+		double[] delta = new double[noParam];
 		double k1,k2,k3,p1,p2,rperr_lm,lambda=0;
 		double rperr = Double.POSITIVE_INFINITY; 
 		Matrix H=null,H_lm=null;
@@ -281,9 +281,14 @@ public class RefineParameters{
 			// Compute the updated parameters
 			//delta = -inv(H_lm)*(J'*dist(:));
 			Matrix deltaM = H_lm.uminus().inverse().times(new Matrix(J).transpose().times(new Matrix(dist,dist.length)));
-			System.out.println("delta");
-			deltaM.print(3,3);
+			for (int i = 0;i<delta.length;++i){
+				delta[i] = deltaM.get(i,0);
+			}
+			System.out.println("delta "+n);
+			deltaM.transpose().print(4,4);
 			break;
+			//System.out.println((deltaM.getArray()).length+" "+(deltaM.getArray())[0].length);
+			
 		}
 			
 		//calibration refined

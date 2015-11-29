@@ -73,6 +73,8 @@ for i = 1:length(cam)
   
   
 	imSize = size(scaledImage);
+  imSize = size(cam(i).image);
+  digitizedCoords = cam(i).digitizedCoordinates;
 	[K, R, t, rperr] = CalibTsai(digitizedCoords, calibrationFrame, imSize(2)/2, imSize(1)/2);
 	disp(['cam ' num2str(i) ' rperr no correction ' num2str(rperr)]);	
 	%Get distortion coefficients
