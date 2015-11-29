@@ -105,6 +105,7 @@ public class RefineParameters{
 			w_lm[2] = w[2]+delta[7];
 			theta = Math.sqrt(w_lm[0]*w_lm[0]+w_lm[1]*w_lm[1]+w_lm[2]*w_lm[2]);
 			R_lm = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
+			//System.out.println("R_lm");
 			if (theta>=Math.ulp(0d)){				
 				Matrix wh_sk = new Matrix(new double[][]{{0,-w_lm[2],w_lm[1]},{w_lm[2], 0,-w_lm[0]},{-w_lm[1],w_lm[0],0}});
 				wh_sk.timesEquals(1/theta);
@@ -117,6 +118,7 @@ public class RefineParameters{
 				R_lm.plusEquals(wh_sk.times(Math.sin(theta)));
 				R_lm.plusEquals((wh_sk.times(wh_sk)).times(1-Math.cos(theta)));
 			}
+			//System.out.println("translation");
 			//translation vector
 			t_lm[0] = t.get(0,0)+delta[8];
 			t_lm[1] = t.get(1,0)+delta[9];
@@ -131,14 +133,19 @@ public class RefineParameters{
 			for (int i = 0; i<3;++i){
 				rotTrans[i][3] = t_lm[i];
 			}
-			double[][] XXw = new double[calib.length][calib[0].length+1];
+			
+			//Transpose the calib coordinates from Nx2 to 2xN (and add a row of 1s) 
+			double[][] XXw = new double[calib[0].length+1][calib.length];
+			//System.out.println("XXw " +XXw.length+" "+XXw[0].length);
 			for (int i = 0;i<calib.length;++i){
 				for (int j = 0; j<calib[i].length;++j){
-					XXw[i][j] = calib[i][j];
+					XXw[j][i] = calib[i][j];
 				}
-				XXw[i][calib[i].length] = 1;
+				XXw[calib[i].length][i] = 1;
 			}
+			//System.out.println("XXc");
 			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
+			//System.out.println("Got XXc");
 			//Various d lengths should be implemented here
 			 k1 = d[0] + delta[11];
 			 k2 = d[1] + delta[12]; 
@@ -150,13 +157,14 @@ public class RefineParameters{
           d_lm[2] = p1;
           d_lm[3] = p2;
           d_lm[4] = k3;	
-			double[] xu = new double[XXw.length];
-			double[] yu = new double[XXw.length];
-			double[] xd = new double[XXw.length];
-			double[] yd = new double[XXw.length];
-			double[] u = new double[XXw.length];
-			double[] v = new double[XXw.length];
+			double[] xu = new double[XXw[0].length];
+			double[] yu = new double[XXw[0].length];
+			double[] xd = new double[XXw[0].length];
+			double[] yd = new double[XXw[0].length];
+			double[] u = new double[XXw[0].length];
+			double[] v = new double[XXw[0].length];
 			double[] r = new double[xu.length];
+			//System.out.println("Coordinates");
 			for (int i = 0; i<xu.length;++i){
 				//undistorted coordinates
 				xu[i] = XXc.get(0,i)/XXc.get(2,i);
@@ -171,6 +179,7 @@ public class RefineParameters{
 			   dist_lm[2*i+1]	= v[i]-digit[i][1];
 			}
 			//Reprojection error
+			//System.out.println("rperr");
 			rperr_lm = Math.sqrt(dot(dist_lm,dist_lm)/noPnts/2);
 			
 			if (rperr_lm <= rperr){
@@ -199,18 +208,55 @@ public class RefineParameters{
          	w = Arrays.copyOf(w_lm,w_lm.length);
          	dist  = Arrays.copyOf(dist_lm,dist_lm.length);
          	//Compute the Jacobian
+         	//System.out.println("Compute Jacobian "+noPnts);
          	for (int i =0;i<noPnts;++i){
          		double[] xxu = new double[]{xu[i],yu[i]};
          		double[] xxd = new double[]{xd[i],yd[i]};
          		//The derivative of a undistorted normalized point
-         		Matrix[] dxxu = compute_dxxu(XXw[i], R, t, w);
+         		//System.out.println("Compute Jacobian dxxu " +i);
+         		Matrix[] dxxu = compute_dxxu(new double[]{XXw[0][i],XXw[1][i],XXw[2][i]}, R, t, w);
          		//The derivative of a distorted normalized point
+         		//System.out.println("Compute Jacobian dxxd " +i);
             	Matrix[] dxxd = compute_dxxd(xxu, d, dxxu[0], dxxu[1]);
          		
          		// The derivative of a distotred 2D pixel points
+         		//System.out.println("Compute Jacobian dxx " +i);
             	Matrix[] dxx = Compute_dxx(xxd, K, d, dxxd[0], dxxd[1], dxxd[2]);
             	//Add the data to the Jacobian
+            	//System.out.println("Compute Jacobian tempRow " +i);
+            	double[] tempRow = new double[(dxx[0].getArray())[0].length+(dxx[1].getArray())[0].length+(dxx[2].getArray())[0].length+(dxx[3].getArray())[0].length];
+            	//System.out.println("[0] "+(dxx[0].getArray())[0].length+" "+(dxx[1].getArray())[0].length+" "+(dxx[2].getArray())[0].length+" "+(dxx[3].getArray())[0].length);
+            	for (int k = 0;k<2;++k){
+            		int tempC = 0;
+            		//System.out.println("dxx[0] "+k);
+            		for (int tempI = 0; tempI<(dxx[0].getArray())[k].length;++tempI){
+            			tempRow[tempC++] = dxx[0].get(k,tempI);
+            		}
+            		//System.out.println("dxx[1] "+k);
+            		for (int tempI = 0; tempI<(dxx[1].getArray())[k].length;++tempI){
+            			tempRow[tempC++] = dxx[1].get(k,tempI);
+            		}
+            		//System.out.println("dxx[2] "+k);
+            		for (int tempI = 0; tempI<(dxx[2].getArray())[k].length;++tempI){
+            			tempRow[tempC++] = dxx[2].get(k,tempI);
+            		}
+            		//System.out.println("dxx[3] "+k);
+            		for (int tempI = 0; tempI<(dxx[3].getArray())[k].length;++tempI){
+            			tempRow[tempC++] = dxx[3].get(k,tempI);
+            		}
+            		//System.out.println("J "+k);
+            		for (int tempI = 0; tempI<tempRow.length;++tempI){
+            			J[2*i+k][tempI] = tempRow[tempI];
+         			}
+         			
+            	}
+            	//System.out.println("J nextRow " +i);
          	}
+         	//System.out.println("Got Jacobian");
+         	Matrix H = new Matrix(J).transpose().times(new Matrix(J));
+         	System.out.println("H");
+				H.getMatrix(new int[]{0,1,2,3,4},new int[]{0,1,2,3,4}).print(3,3);
+				break;
          	//JATKA TASTA, apufunktiot implementoitu
 			}
 			
@@ -259,15 +305,20 @@ public class RefineParameters{
 	
 	//Helper functions
 	Matrix[] compute_dxxu(double[] XXw,Matrix R,Matrix t,double[] w){
-		Matrix XXc = (R.times(new Matrix(XXw,XXw.length).transpose())).plus(t);
-		
+		Matrix XXc = (R.times(new Matrix(XXw,XXw.length))).plus(t);
+		//System.out.println("Compute Jacobian dxxu got XXc");
 		Matrix dxxu_dXXc = compute_dxxu_dXXc(XXc);
+		//System.out.println("Compute Jacobian dxxu_dXXc");
 		Matrix dXXc_dr   = compute_dXXc_dr(XXw);
+		//System.out.println("Compute Jacobian dxxu_dXXc_dr");
 		Matrix dr_dw     = compute_dr_dw(w);
+		//System.out.println("Compute Jacobian dxxu_dr_dw");
 		Matrix dXXc_dt   = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
-		 
+		 //System.out.println("Compute Jacobian dxxu_eye_matrix");
 		Matrix dxxu_dw = (dxxu_dXXc.times(dXXc_dr)).times(dr_dw);
+		//System.out.println("Compute Jacobian dxxu_dw");
 		Matrix dxxu_dt = dxxu_dXXc.times(dXXc_dt);
+		//System.out.println("Compute Jacobian dxxu_dt");
 		return new Matrix[]{dxxu_dw,dxxu_dt};
 	}
 	
@@ -472,6 +523,7 @@ public class RefineParameters{
 
 
 		 //The derivative of a tangentially distorted normalized point
+		 //System.out.println("Compute Jacobian dxxd_tangential");
 		 if (d.length >= 4){
 			  double p1 = d[2];
 			  double p2 = d[3];
@@ -479,15 +531,15 @@ public class RefineParameters{
 			  Matrix dxt_dxxu = new Matrix(new double[]{2*p1*yu+6*p2*xu, 2*p1*xu+2*p2*yu},2).transpose();
 			  Matrix dyt_dxxu = new Matrix(new double[]{2*p1*xu+2*p2*yu, 6*p1*yu+2*p2*xu},2).transpose();
 				
-				double[][] tw = new double[dxu_dw.length][2];
-				double[][] tt = new double[dxu_dt.length][2];	
-				for (int i =0;i<tw.length;++i){
-					tw[i][0] = dxu_dw[i];
-					tw[i][1] = dyu_dw[i];
+				double[][] tw = new double[2][dxu_dw.length];
+				double[][] tt = new double[2][dxu_dt.length];	
+				for (int i =0;i<dxu_dw.length;++i){
+					tw[0][i] = dxu_dw[i];
+					tw[1][i] = dyu_dw[i];
 				}
-				for (int i =0;i<tt.length;++i){
-					tt[i][0] = dxu_dt[i];
-					tt[i][1] = dyu_dt[i];
+				for (int i =0;i<dxu_dt.length;++i){
+					tt[0][i] = dxu_dt[i];
+					tt[1][i] = dyu_dt[i];
 				}
 			  dxxu_dw = new Matrix(tw);
 			  dxxu_dt = new Matrix(tt);
@@ -512,21 +564,21 @@ public class RefineParameters{
 
 		 double[] dxd_dd = dxr_dk;
 		 double[] dyd_dd = dyr_dk;
-
+		//System.out.println("Derivative of a distorted");
 		if (d.length > 2){
 			for (int i = 0;i<dxd_dw.length;++i){
-			 dxd_dw[i] += dxt_dw.get(i,0);
-			 dyd_dw[i] += dyt_dw.get(i,0);
+			 dxd_dw[i] += dxt_dw.get(0,i);
+			 dyd_dw[i] += dyt_dw.get(0,i);
 			}
 			for (int i = 0;i<dxd_dt.length;++i){
-			 dxd_dt[i] += dxt_dt.get(i,0);
-			 dyd_dt[i] += dyt_dt.get(i,0);
+			 dxd_dt[i] += dxt_dt.get(0,i);
+			 dyd_dt[i] += dyt_dt.get(0,i);
 			}
 
 			dxd_dd = new double[]{dxr_dk[0], dxr_dk[1], dxt_dp[0], dxt_dp[1], dxr_dk[2]};
 			dyd_dd = new double[]{dyr_dk[0], dyr_dk[1], dyt_dp[0], dyt_dp[1], dyr_dk[2]};
 		}
-
+		//System.out.println("Create outputs");
 		double[][] dxxd_dw = new double[][]{dxd_dw,dyd_dw};
 		double[][] dxxd_dt = new double[][]{dxd_dt,dyd_dt};
 		double[][] dxxd_dd = new double[][]{dxd_dd,dyd_dd};
@@ -536,16 +588,17 @@ public class RefineParameters{
 	Matrix[] Compute_dxx(double[] xxd, Matrix K, double[] d, Matrix dxxd_dw,Matrix dxxd_dt,Matrix dxxd_dd){
 		double xd = xxd[0];
 		double yd = xxd[1];
-
+		//System.out.println("get K");
 		double fx = K.get(0,0);
 		double fy = K.get(1,1);
 		double u0 = K.get(0,2);
 		double v0 = K.get(1,2);
 		double s  = K.get(0,1);
 
+		//System.out.println("get dxd_dw");
 		double[] dxd_dw = (dxxd_dw.getArray())[0];
 		double[] dyd_dw = (dxxd_dw.getArray())[1];
-
+		//System.out.println("get dxd_dt");
 		double[] dxd_dt = (dxxd_dt.getArray())[0];
 		double[] dyd_dt = (dxxd_dt.getArray())[1];
 
@@ -570,6 +623,7 @@ public class RefineParameters{
 		double[] dyd_dd = (dxxd_dd.getArray())[1];
 		double[] du_dd = new double[dxd_dd.length];
 		double[] dv_dd = new double[dxd_dd.length];
+		//System.out.println("get dxd_dd");
 		for (int i = 0;i<dxd_dd.length;++i){
 			 du_dd[i] = fx*dxd_dd[i] + s*dyd_dd[i];
 			 dv_dd[i] = fy*dyd_dd[i];
@@ -581,14 +635,16 @@ public class RefineParameters{
 
 		double[] du_dw = new double[dxd_dw.length];
 		double[] dv_dw = new double[dxd_dw.length];
-		for (int i = 0;i<dxd_dd.length;++i){
+		//System.out.println("get dxd_dw");
+		for (int i = 0;i<dxd_dw.length;++i){
 			 du_dw[i] = fx*dxd_dw[i] + s*dyd_dw[i];
 			 dv_dw[i] = fy*dyd_dw[i];
 		 }
 
 		double[] du_dt = new double[dxd_dt.length];
 		double[] dv_dt = new double[dxd_dt.length];
-		for (int i = 0;i<dxd_dd.length;++i){
+		//System.out.println("get dxd_dt");
+		for (int i = 0;i<dxd_dt.length;++i){
 			 du_dt[i] = fx*dxd_dt[i] + s*dyd_dt[i];
 			 dv_dt[i] = fy*dyd_dt[i];
 		 }

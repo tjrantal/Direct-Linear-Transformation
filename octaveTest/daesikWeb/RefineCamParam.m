@@ -175,7 +175,7 @@ for n = 1:iter
     
     %% 3D points represented with respect to the camera coordinate frame
     XXc = [R_lm t_lm]*[XXw; ones(1,noPnts)];
-
+  
     
     %% undistorted normalized points
     xu = XXc(1,:)./XXc(3,:);
@@ -279,7 +279,7 @@ for n = 1:iter
         
         % Compute the approximated Hessian matrix
         H = J'*J;
-        
+        %keyboard;
         if (n == 1)
             lambda = 0.001*trace(H)/noParam;
         else
@@ -352,7 +352,6 @@ dXXc_dr = zeros(3,9);
 dXXc_dr(1,1:3:end) = XXw;
 dXXc_dr(2,2:3:end) = XXw;
 dXXc_dr(3,3:3:end) = XXw;
-
     
 function [dr_dw] = Compute_dr_dw(w)
 wx = w(1); wy = w(2); wz = w(3);

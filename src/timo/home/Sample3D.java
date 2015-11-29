@@ -74,11 +74,11 @@ public class Sample3D extends JFrame{
 			System.out.println("Cam "+i);
 			ArrayList<Matrix> KRt = lc.calibrate(getCoords(cr[i]));
 			System.out.println("K");
-			KRt.get(0).print(6,4);
+			KRt.get(0).print(3,3);
 			System.out.println("R");
-			KRt.get(1).print(6,4);
+			KRt.get(1).print(3,3);
 			System.out.println("t");
-			KRt.get(2).print(6,4);
+			KRt.get(2).print(3,3);
 			//Refine the calibration
 			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));		
 		}

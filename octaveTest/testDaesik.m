@@ -48,7 +48,7 @@ end
 
 %Subsample the image to not run out of memory...
 notes = struct();
-notes.fh = figure('position',[10 10 1000 500])
+%notes.fh = figure('position',[10 10 1000 500])
 for i = 1:length(cam)
 	digitizedCoords = cam(i).digitizedCoordinates./5;	%Scale the coordinates down by 5
 	tempImage = cam(i).image;
@@ -57,18 +57,18 @@ for i = 1:length(cam)
 	scaledImage(:,:,2) = imresize(tempImage(:,:,2),0.2,'nearest');
 	scaledImage(:,:,3) = imresize(tempImage(:,:,3),0.2,'nearest');
 	
-	notes.sp(i*2-1) = subplot(length(cam),2,i*2-1);
-	imshow(scaledImage,[]);
-	hold on;
-	plot(digitizedCoords(:,1),digitizedCoords(:,2),'r.')
+	%notes.sp(i*2-1) = subplot(length(cam),2,i*2-1);
+	%imshow(scaledImage,[]);
+	%hold on;
+	%plot(digitizedCoords(:,1),digitizedCoords(:,2),'r.')
   %Calculate DLT and backprojection without lens distortion correction
   notes.ocoeffs(i).coeff = getDLTcoeffs(calibrationFrame,digitizedCoords);
   notes.obp(i).bp = backproject(notes.ocoeffs(i).coeff,[1.5,0,1.5]);
-  plot(notes.obp(i).bp(1),notes.obp(i).bp(2),'k*')
+  %plot(notes.obp(i).bp(1),notes.obp(i).bp(2),'k*')
   %Backproject all calibrationframe coordinates
   for cc = 1:size(calibrationFrame,1)
     bbc = backproject(notes.ocoeffs(i).coeff,calibrationFrame(cc,:));
-   plot(bbc(1),bbc(2),'go');
+   %plot(bbc(1),bbc(2),'go');
   end
   
   
