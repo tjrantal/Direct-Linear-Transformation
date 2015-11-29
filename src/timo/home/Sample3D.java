@@ -70,17 +70,29 @@ public class Sample3D extends JFrame{
 		}
 		*/
 		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
-		for (int i = 0;i<2;++i){
+		for (int i = 0;i<1;++i){
 			System.out.println("Cam "+i);
 			ArrayList<Matrix> KRt = lc.calibrate(getCoords(cr[i]));
+			/*
 			System.out.println("K");
 			KRt.get(0).print(3,3);
 			System.out.println("R");
 			KRt.get(1).print(3,3);
 			System.out.println("t");
 			KRt.get(2).print(3,3);
+			*/
 			//Refine the calibration
-			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));		
+			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));
+			ArrayList<Matrix> KdRt = rp.getCalibration();
+			System.out.println("K");
+			KdRt.get(0).print(3,3);
+			System.out.println("d");
+			KdRt.get(1).print(3,3);
+			System.out.println("R");
+			KdRt.get(2).print(3,3);
+			System.out.println("t");
+			KdRt.get(3).print(3,3);
+					
 		}
 		
 		

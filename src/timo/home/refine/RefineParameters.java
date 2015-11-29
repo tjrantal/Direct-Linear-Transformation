@@ -54,7 +54,7 @@ public class RefineParameters{
 		this.R = R;
 		this.t = t;
 		KdRt = null;
-		refine();
+		KdRt = refine();
 	}
 
 
@@ -195,12 +195,12 @@ public class RefineParameters{
 				for (int i =0;i<d.length;++i){
 					param[11+i] = d[i];
 				}
-				K = new Matrix(K_lm);
+				K = (new Matrix(K_lm)).copy();
 				R = R_lm.copy();
-				t = new Matrix(t_lm,t_lm.length);
+				t = (new Matrix(t_lm,t_lm.length)).copy();
 				d = Arrays.copyOf(d_lm,d_lm.length);
 				rperr = rperr_lm;
-				if (n>0 && Math.sqrt(dot(delta,delta)/dot(param,param)) < Math.ulp(0)){
+				if (n>0 && Math.sqrt(dot(delta,delta)/dot(param,param)) < Math.ulp(1d)){
 					//Optimization done, exit loop
 					break;
 				}
@@ -271,7 +271,7 @@ public class RefineParameters{
 			// Prevent the matrix from being singular
 			/*
 			//To be implemented
-			if (rcond(H_lm) < Math.ulp(0)){
+			if (rcond(H_lm) < Math.ulp(1d)){
 			  lambda = lambda*10;
 			  H_lm = H + (lambda * eye(noParam, noParam));
 			  H_lm = H.plus(Matrix.identity(noParam, noParam).times(lambda));
@@ -284,9 +284,8 @@ public class RefineParameters{
 			for (int i = 0;i<delta.length;++i){
 				delta[i] = deltaM.get(i,0);
 			}
-			System.out.println("delta "+n);
-			deltaM.transpose().print(4,4);
-			break;
+			//System.out.println("delta "+n);
+			//deltaM.transpose().print(4,4);
 			//System.out.println((deltaM.getArray()).length+" "+(deltaM.getArray())[0].length);
 			
 		}
@@ -377,7 +376,7 @@ public class RefineParameters{
 		double wz = w[2];
 		double theta = Math.sqrt(dot(w,w));
 		double[][] dr_dw = null;
-		if (theta < Math.ulp(0)){
+		if (theta < Math.ulp(1d)){
 			 dr_dw = new double[][]{{ 0 , 0 , 0},
 				        {0 , 0 , 1},
 				        {0, -1,  0},

@@ -81,7 +81,8 @@ for i = 1:length(cam)
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0], R, t);
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
 	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t);
-	disp(['cam ' num2str(i) ' rperr with correction ' num2str(rperr)]);
+	keyboard;
+  disp(['cam ' num2str(i) ' rperr with correction ' num2str(rperr)]);
 	%Test calibration
 	undistorted = UndistImage(scaledImage, K, d);
 	notes.sp(i*2) = subplot(length(cam),2,i*2);
