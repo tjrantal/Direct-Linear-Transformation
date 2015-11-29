@@ -87,9 +87,9 @@ public class RefineParameters{
 		double[] dist_lm = new double[2*noPnts];
 		double[] dist = new double[2*noPnts];
 		double[] delta = new double[2*noParam];
-		double k1,k2,k3,p1,p2,rperr_lm;
+		double k1,k2,k3,p1,p2,rperr_lm,lambda=0;
 		double rperr = Double.POSITIVE_INFINITY; 
-		
+		Matrix H=null,H_lm=null;
 		for (int n = 0;n<30;++n){
 			//Camera intrinsic parameters
 			K_lm[0][0] = K.get(0,0)+delta[0];	//fx
@@ -253,14 +253,37 @@ public class RefineParameters{
             	//System.out.println("J nextRow " +i);
          	}
          	//System.out.println("Got Jacobian");
-         	Matrix H = new Matrix(J).transpose().times(new Matrix(J));
-         	System.out.println("H");
-				H.getMatrix(new int[]{0,1,2,3,4},new int[]{0,1,2,3,4}).print(3,3);
-				break;
-         	//JATKA TASTA, apufunktiot implementoitu
+         	H = new Matrix(J).transpose().times(new Matrix(J));
+         	//System.out.println("H");
+				//H.getMatrix(new int[]{0,1,2,3,4},new int[]{0,1,2,3,4}).print(3,3);
+				//update damping factor
+				if (n == 0){
+					lambda = 0.001*trace(H.getArray())/noParam;
+				}else{
+					 lambda = lambda/10;
+				}
+			}else{
+				lambda = lambda*10;
 			}
-			
-			
+			//Apply the damping factor to the Hessian matrix
+			H_lm = H.plus(Matrix.identity(noParam, noParam).times(lambda));
+
+			// Prevent the matrix from being singular
+			/*
+			//To be implemented
+			if (rcond(H_lm) < Math.ulp(0)){
+			  lambda = lambda*10;
+			  H_lm = H + (lambda * eye(noParam, noParam));
+			  H_lm = H.plus(Matrix.identity(noParam, noParam).times(lambda));
+			}
+			*/
+
+			// Compute the updated parameters
+			//delta = -inv(H_lm)*(J'*dist(:));
+			Matrix deltaM = H_lm.uminus().inverse().times(new Matrix(J).transpose().times(new Matrix(dist,dist.length)));
+			System.out.println("delta");
+			deltaM.print(3,3);
+			break;
 		}
 			
 		//calibration refined

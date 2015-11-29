@@ -301,6 +301,7 @@ for n = 1:iter
     
     % Compute the updated parameters
     delta = -inv(H_lm)*(J'*dist(:));
+    keyboard;
 end
 
 
