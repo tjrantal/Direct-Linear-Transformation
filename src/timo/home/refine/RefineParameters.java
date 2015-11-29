@@ -206,8 +206,12 @@ public class RefineParameters{
          		Matrix[] dxxu = compute_dxxu(XXw[i], R, t, w);
          		//The derivative of a distorted normalized point
             	Matrix[] dxxd = compute_dxxd(xxu, d, dxxu[0], dxxu[1]);
-         		//JATKA TASTA, apufunktiot implementoitu
+         		
+         		// The derivative of a distotred 2D pixel points
+            	Matrix[] dxx = Compute_dxx(xxd, K, d, dxxd[0], dxxd[1], dxxd[2]);
+            	//Add the data to the Jacobian
          	}
+         	//JATKA TASTA, apufunktiot implementoitu
 			}
 			
 			
@@ -541,5 +545,72 @@ public class RefineParameters{
 			dxxd_dd[1][i] = dyd_dd[i];
 		}
 		return new Matrix[]{new Matrix(dxxd_dw),new Matrix(dxxd_dt),new Matrix(dxxd_dd)};
+	}
+	
+	Matrix[] Compute_dxx(double[] xxd, Matrix K, double[] d, Matrix dxxd_dw,Matrix dxxd_dt,Matrix dxxd_dd){
+		double xd = xxd[0];
+		double yd = xxd[1];
+
+		double fx = K.get(0,0);
+		double fy = K.get(1,1);
+		double u0 = K.get(0,2);
+		double v0 = K.get(1,2);
+		double s  = K.get(0,1);
+
+		double[] dxd_dw = (dxxd_dw.getArray())[0];
+		double[] dyd_dw = (dxxd_dw.getArray())[1];
+
+		double[] dxd_dt = (dxxd_dt.getArray())[0];
+		double[] dyd_dt = (dxxd_dt.getArray())[1];
+
+		double du_dfx = xd;
+		double du_dfy =  0;
+		double du_du0 =  1;
+		double du_dv0 =  0;
+		double dv_dfx =  0;
+		double dv_dfy = yd;
+		double dv_du0 =  0;
+		double dv_dv0 =  1; 
+		double du_ds,dv_ds;
+		if (s == 0){
+			 du_ds = 0;
+			 dv_ds = 0;
+		}else{
+			 du_ds = yd;
+			 dv_ds =  0;
+		}
+		
+		double[] dxd_dd = (dxxd_dd.getArray())[0];
+		double[] dyd_dd = (dxxd_dd.getArray())[1];
+		double[] du_dd = new double[dxd_dd.length];
+		double[] dv_dd = new double[dxd_dd.length];
+		for (int i = 0;i<dxd_dd.length;++i){
+			 du_dd[i] = fx*dxd_dd[i] + s*dyd_dd[i];
+			 dv_dd[i] = fy*dyd_dd[i];
+		 }
+
+
+		double[] du_dk = new double[]{du_dfx, du_dfy, du_du0, du_dv0, du_ds};
+		double[] dv_dk = new double[]{dv_dfx, dv_dfy, dv_du0, dv_dv0, dv_ds};
+
+		double[] du_dw = new double[dxd_dw.length];
+		double[] dv_dw = new double[dxd_dw.length];
+		for (int i = 0;i<dxd_dd.length;++i){
+			 du_dw[i] = fx*dxd_dw[i] + s*dyd_dw[i];
+			 dv_dw[i] = fy*dyd_dw[i];
+		 }
+
+		double[] du_dt = new double[dxd_dt.length];
+		double[] dv_dt = new double[dxd_dt.length];
+		for (int i = 0;i<dxd_dd.length;++i){
+			 du_dt[i] = fx*dxd_dt[i] + s*dyd_dt[i];
+			 dv_dt[i] = fy*dyd_dt[i];
+		 }
+
+		double[][] dxx_dk = new double[][]{du_dk, dv_dk};
+		double[][] dxx_dw = new double[][]{du_dw, dv_dw};
+		double[][] dxx_dt = new double[][]{du_dt, dv_dt};
+		double[][] dxx_dd = new double[][]{du_dd, dv_dd};
+		return new Matrix[]{new Matrix(dxx_dk),new Matrix(dxx_dw),new Matrix(dxx_dt),new Matrix(dxx_dd)};
 	}
 }
