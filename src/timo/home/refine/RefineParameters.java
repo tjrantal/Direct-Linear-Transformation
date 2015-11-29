@@ -527,23 +527,9 @@ public class RefineParameters{
 			dyd_dd = new double[]{dyr_dk[0], dyr_dk[1], dyt_dp[0], dyt_dp[1], dyr_dk[2]};
 		}
 
-		double[][] dxxd_dw = new double[2][dxd_dw.length];
-		for (int i = 0;i<dxd_dw.length;++i){
-			dxxd_dw[0][i] = dxd_dw[i];
-			dxxd_dw[1][i] = dyd_dw[i];
-		}
-		
-		double[][] dxxd_dt = new double[2][dxd_dt.length];
-		for (int i = 0;i<dxd_dw.length;++i){
-			dxxd_dt[0][i] = dxd_dt[i];
-			dxxd_dt[1][i] = dyd_dt[i];
-		}
-		
-		double[][] dxxd_dd = new double[2][dxd_dd.length];
-		for (int i = 0;i<dxd_dw.length;++i){
-			dxxd_dd[0][i] = dxd_dd[i];
-			dxxd_dd[1][i] = dyd_dd[i];
-		}
+		double[][] dxxd_dw = new double[][]{dxd_dw,dyd_dw};
+		double[][] dxxd_dt = new double[][]{dxd_dt,dyd_dt};
+		double[][] dxxd_dd = new double[][]{dxd_dd,dyd_dd};
 		return new Matrix[]{new Matrix(dxxd_dw),new Matrix(dxxd_dt),new Matrix(dxxd_dd)};
 	}
 	
