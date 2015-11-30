@@ -150,11 +150,14 @@ for n = 1:iter
     w_lm(1) = w(1) + delta(6);  % wx
     w_lm(2) = w(2) + delta(7);  % wy
     w_lm(3) = w(3) + delta(8);  % wz
-    
+    disp(['w ' num2str(n)]);
+    disp(num2str(w))
+    disp(num2str(w_lm))
     wx = w_lm(1); wy = w_lm(2); wz = w_lm(3);
     theta = sqrt(wx^2 + wy^2 + wz^2);
     
     if (theta < eps)
+    		disp(['theta < eps ']);
         R_lm = eye(3);
     else
         wh_sk = [  0 -wz  wy;
@@ -171,9 +174,15 @@ for n = 1:iter
     t_lm(1) = t(1) + delta(9);
     t_lm(2) = t(2) + delta(10); 
     t_lm(3) = t(3) + delta(11);
-
+    disp(['t ' num2str(n)]);
+    disp(num2str(t))
+    disp(num2str(t_lm))
+    
     
     %% 3D points represented with respect to the camera coordinate frame
+    disp('RotTrans');
+    disp(num2str([R_lm t_lm]));
+    
     XXc = [R_lm t_lm]*[XXw; ones(1,noPnts)];
   
     
@@ -229,6 +238,7 @@ for n = 1:iter
     
    
     if (rperr_lm <= rperr)
+        disp('Into rperr_lm<');
         param = [K(1,1); K(2,2); K(1,3); K(2,3); K(1,2); w; t; d];
                  
         if (((n > 1) && sqrt(dot(delta,delta)/dot(param,param)) < rerr))
@@ -287,6 +297,7 @@ for n = 1:iter
         end
     else
         lambda = lambda*10;
+        disp(['lambda x 10 ' num2str(n) ' ' num2str(lambda)]);
     end
     
     
@@ -296,11 +307,15 @@ for n = 1:iter
     % Prevent the matrix from being singular
     if (rcond(H_lm) < eps)
         lambda = lambda*10;
+        disp('RCOND');
         H_lm = H + (lambda * eye(noParam, noParam));
     end
     
     % Compute the updated parameters
     delta = -inv(H_lm)*(J'*dist(:));
+    disp(['delta ' num2str(n)]);
+    disp(delta');
+    %disp(dist');
     
 end
 
