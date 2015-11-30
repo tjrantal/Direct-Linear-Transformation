@@ -108,7 +108,7 @@ public class RefineParameters{
 		double[] v = new double[XXw[0].length];
 		double[] r = new double[xu.length];
 		
-		for (int n = 0;n<10;++n){
+		for (int n = 0;n<30;++n){
 			//Camera intrinsic parameters
 			K_lm[0][0] = K.get(0,0)+delta[0];	//fx
 			K_lm[1][1] = K.get(1,1)+delta[1];	//fy
@@ -121,9 +121,9 @@ public class RefineParameters{
 			w_lm[0] = w[0]+delta[5];
 			w_lm[1] = w[1]+delta[6];
 			w_lm[2] = w[2]+delta[7];
-			System.out.println("W "+(n+1));
-    		(new Matrix(w,3)).print(4,4);
-    		(new Matrix(w_lm,3)).print(4,4);
+			//System.out.println("W "+(n+1));
+    		//(new Matrix(w,3)).print(4,4);
+    		//(new Matrix(w_lm,3)).print(4,4);
 			
 			theta = Math.sqrt(w_lm[0]*w_lm[0]+w_lm[1]*w_lm[1]+w_lm[2]*w_lm[2]);
 			R_lm = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
@@ -141,17 +141,15 @@ public class RefineParameters{
 				*/
 				R_lm.plusEquals(wh_sk.times(Math.sin(theta)));
 				R_lm.plusEquals((wh_sk.times(wh_sk)).times(1-Math.cos(theta)));
-			}else{
-				System.out.println("Theta < Math.ulp(1d)");
 			}
 			//System.out.println("translation");
 			//translation vector
 			t_lm[0] = t.get(0,0)+delta[8];
 			t_lm[1] = t.get(1,0)+delta[9];
 			t_lm[2] = t.get(2,0)+delta[10];
-			System.out.println("t "+(n+1));
-    		t.print(4,4);
-    		(new Matrix(t_lm,3)).print(4,4);
+			//System.out.println("t "+(n+1));
+    		//t.print(4,4);
+    		//(new Matrix(t_lm,3)).print(4,4);
 			
 			//3D points presented with respect to the camera coordinates
 			double[][] rotTrans = new double[3][4];
@@ -164,8 +162,8 @@ public class RefineParameters{
 				rotTrans[i][3] = t_lm[i];
 			}
 
-			System.out.println("RotTrans "+(n+1));
-			new Matrix(rotTrans).print(4,4);
+			//System.out.println("RotTrans "+(n+1));
+			//new Matrix(rotTrans).print(4,4);
 			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
 			//System.out.println("Got XXc");
 			//Various d lengths should be implemented here
@@ -196,9 +194,9 @@ public class RefineParameters{
 			//Reprojection error
 			//System.out.println("rperr");
 			rperr_lm = Math.sqrt(dot(dist_lm,dist_lm)/noPnts/2);
-			System.out.println("rperr_lm "+rperr_lm+" "+rperr+" "+(n+1));
+			//System.out.println("rperr_lm "+rperr_lm+" "+rperr+" "+(n+1));
 			if (rperr_lm <= rperr){
-				System.out.println("Into rperr< "+(n+1));
+				//System.out.println("Into rperr< "+(n+1));
 				param[0] = K.get(0,0);
 				param[1] = K.get(1,1);
 				param[2] = K.get(0,2);
@@ -266,20 +264,21 @@ public class RefineParameters{
 				}
 			}else{
 				lambda = lambda*10;
-				System.out.println("Lambda x 10 "+n+" "+lambda);
+				//System.out.println("Lambda x 10 "+n+" "+lambda);
 			}
 			//Apply the damping factor to the Hessian matrix
 			H_lm = H.copy().plus(Matrix.identity(noParam, noParam).times(lambda));
 
 			// Prevent the matrix from being singular
-			/*
+			
 			//To be implemented
-			if (rcond(H_lm) < Math.ulp(1d)){
-			  lambda = lambda*10;
-			  H_lm = H + (lambda * eye(noParam, noParam));
-			  H_lm = H.plus(Matrix.identity(noParam, noParam).times(lambda));
+			//System.out.println((n+1)+"1/cond "+(1/H_lm.cond()));
+			if (1/H_lm.cond() < Math.ulp(1d)){
+				//System.out.println("RCOND "+(n+1));
+			  	lambda = lambda*10;
+			 	H_lm = H.copy().plus(Matrix.identity(noParam, noParam).times(lambda));
 			}
-			*/
+			
 
 			// Compute the updated parameters
 			//delta = -inv(H_lm)*(J'*dist(:));
@@ -287,9 +286,9 @@ public class RefineParameters{
 			for (int i = 0;i<delta.length;++i){
 				delta[i] = deltaM.get(i,0);
 			}
-			System.out.println("delta "+n);
-			deltaM.transpose().print(4,4);
-			(new Matrix(dist,dist.length)).transpose().print(4,4);
+			//System.out.println("delta "+n);
+			//deltaM.transpose().print(4,4);
+			//(new Matrix(dist,dist.length)).transpose().print(4,4);
 			//System.out.println((deltaM.getArray()).length+" "+(deltaM.getArray())[0].length);
 			
 		}
