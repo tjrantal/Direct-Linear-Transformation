@@ -52,4 +52,15 @@ public class ImagePanel extends JPanel{
 	public void paint(Graphics g) {
 		g.drawImage(bi,0,0,null);
 	}
+	
+	public BufferedImage getBI(){
+		return bi;
+	}
+	public void setBI(BufferedImage bi){
+		this.bi = bi;
+	}
+	
+	public double getScaleFactor(){
+		return scaleFactor;
+	}
 }

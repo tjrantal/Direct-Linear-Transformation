@@ -32,6 +32,7 @@ import timo.home.imagePanel.*;
 import timo.home.utils.*;
 import timo.home.calibration.*;
 import timo.home.refine.*;
+import timo.home.undristort.*;
 
 import java.util.*;
 import java.awt.*;

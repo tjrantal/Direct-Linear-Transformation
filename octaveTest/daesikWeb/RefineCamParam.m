@@ -142,7 +142,7 @@ for n = 1:iter
     K_lm(1,3) = K(1,3) + delta(3);  % u0
     K_lm(2,3) = K(2,3) + delta(4);  % v0
     K_lm(1,2) = K(1,2) + delta(5);  % s
-	K_lm(3,3) = 1;
+	  K_lm(3,3) = 1;
     
          
     %% Convert the 3x1 vector of the Rodigrues representation 
@@ -150,11 +150,14 @@ for n = 1:iter
     w_lm(1) = w(1) + delta(6);  % wx
     w_lm(2) = w(2) + delta(7);  % wy
     w_lm(3) = w(3) + delta(8);  % wz
-    
+    %disp(['w ' num2str(n)]);
+    %disp(num2str(w))
+    %disp(num2str(w_lm))
     wx = w_lm(1); wy = w_lm(2); wz = w_lm(3);
     theta = sqrt(wx^2 + wy^2 + wz^2);
     
     if (theta < eps)
+    		disp(['theta < eps ']);
         R_lm = eye(3);
     else
         wh_sk = [  0 -wz  wy;
@@ -171,9 +174,15 @@ for n = 1:iter
     t_lm(1) = t(1) + delta(9);
     t_lm(2) = t(2) + delta(10); 
     t_lm(3) = t(3) + delta(11);
-
+    %disp(['t ' num2str(n)]);
+    %disp(num2str(t))
+    %disp(num2str(t_lm))
+    
     
     %% 3D points represented with respect to the camera coordinate frame
+    %disp('RotTrans');
+    %disp(num2str([R_lm t_lm]));
+    
     XXc = [R_lm t_lm]*[XXw; ones(1,noPnts)];
   
     
@@ -229,6 +238,7 @@ for n = 1:iter
     
 	disp(['RPERR ' num2str(rperr) ' ' num2str(rperr_lm)]);
     if (rperr_lm <= rperr)
+        %disp('Into rperr_lm<');
         param = [K(1,1); K(2,2); K(1,3); K(2,3); K(1,2); w; t; d];
                  
         if (((n > 1) && sqrt(dot(delta,delta)/dot(param,param)) < rerr))
@@ -287,7 +297,8 @@ for n = 1:iter
         end
     else
         lambda = lambda*10;
-		disp(['lambda  x 10 ' num2str(lambda)]);
+        %disp(['lambda x 10 ' num2str(n) ' ' num2str(lambda)]);
+
     end
     
     
@@ -295,16 +306,25 @@ for n = 1:iter
     H_lm = H + (lambda * eye(noParam, noParam));
 
     % Prevent the matrix from being singular
+    %disp([num2str(n) ' rcond ' num2str(rcond(H_lm)) ]);
     if (rcond(H_lm) < eps)
 		disp(['RCOND ' num2str(n)]);
         lambda = lambda*10;
+        %disp(['RCOND' num2str(n) ]);
         H_lm = H + (lambda * eye(noParam, noParam));
     end
     
     % Compute the updated parameters
     delta = -inv(H_lm)*(J'*dist(:));
+<<<<<<< HEAD
 	disp(['delta ' num2str(n)]);
     disp(num2str(delta','%.3f'))
+=======
+    %disp(['delta ' num2str(n)]);
+    %disp(delta');
+    %disp(dist');
+    
+>>>>>>> 60ee71bb45b816d6c7d91a3f41dac292dc2b9a57
 end
 
 disp(['n ' num2str(n)]);
