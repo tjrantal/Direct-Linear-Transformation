@@ -227,7 +227,7 @@ for n = 1:iter
     % Re-projection Error
     rperr_lm = sqrt(dot(dist_lm,dist_lm)/noPnts/2);
     
-   
+	disp(['RPERR ' num2str(rperr) ' ' num2str(rperr_lm)]);
     if (rperr_lm <= rperr)
         param = [K(1,1); K(2,2); K(1,3); K(2,3); K(1,2); w; t; d];
                  
@@ -287,6 +287,7 @@ for n = 1:iter
         end
     else
         lambda = lambda*10;
+		disp(['lambda  x 10 ' num2str(lambda)]);
     end
     
     
@@ -295,13 +296,15 @@ for n = 1:iter
 
     % Prevent the matrix from being singular
     if (rcond(H_lm) < eps)
+		disp(['RCOND ' num2str(n)]);
         lambda = lambda*10;
         H_lm = H + (lambda * eye(noParam, noParam));
     end
     
     % Compute the updated parameters
     delta = -inv(H_lm)*(J'*dist(:));
-    
+	disp(['delta ' num2str(n)]);
+    disp(num2str(delta','%.3f'))
 end
 
 disp(['n ' num2str(n)]);

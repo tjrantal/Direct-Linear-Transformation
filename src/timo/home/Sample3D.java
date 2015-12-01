@@ -80,6 +80,7 @@ public class Sample3D extends JFrame{
 			KRt.get(1).print(3,3);
 			System.out.println("t");
 			KRt.get(2).print(3,3);
+			System.out.println("");
 			*/
 			//Refine the calibration
 			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));

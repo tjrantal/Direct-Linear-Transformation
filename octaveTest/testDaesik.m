@@ -80,7 +80,11 @@ for i = 1:length(cam)
 	%Get distortion coefficients
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0], R, t);
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
-	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t);
+	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t,eps,20);
+	K
+	d
+	R
+	t
 	keyboard;
   disp(['cam ' num2str(i) ' rperr with correction ' num2str(rperr)]);
 	%Test calibration

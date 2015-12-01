@@ -90,7 +90,7 @@ public class RefineParameters{
 		double k1,k2,k3,p1,p2,rperr_lm,lambda=0;
 		double rperr = Double.POSITIVE_INFINITY; 
 		Matrix H=null,H_lm=null;
-		for (int n = 0;n<30;++n){
+		for (int n = 0;n<20;++n){
 			//Camera intrinsic parameters
 			K_lm[0][0] = K.get(0,0)+delta[0];	//fx
 			K_lm[1][1] = K.get(1,1)+delta[1];	//fy
@@ -106,7 +106,7 @@ public class RefineParameters{
 			theta = Math.sqrt(w_lm[0]*w_lm[0]+w_lm[1]*w_lm[1]+w_lm[2]*w_lm[2]);
 			R_lm = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
 			//System.out.println("R_lm");
-			if (theta>=Math.ulp(0d)){				
+			if (theta>=Math.ulp(1d)){				
 				Matrix wh_sk = new Matrix(new double[][]{{0,-w_lm[2],w_lm[1]},{w_lm[2], 0,-w_lm[0]},{-w_lm[1],w_lm[0],0}});
 				wh_sk.timesEquals(1/theta);
 				//3x3 Rotation matrix
@@ -181,7 +181,7 @@ public class RefineParameters{
 			//Reprojection error
 			//System.out.println("rperr");
 			rperr_lm = Math.sqrt(dot(dist_lm,dist_lm)/noPnts/2);
-			
+			System.out.println("rperr "+rperr+" "+rperr_lm);
 			if (rperr_lm <= rperr){
 				param[0] = K.get(0,0);
 				param[1] = K.get(1,1);
@@ -205,56 +205,56 @@ public class RefineParameters{
 					break;
 				}
 				//Update
-         	w = Arrays.copyOf(w_lm,w_lm.length);
-         	dist  = Arrays.copyOf(dist_lm,dist_lm.length);
-         	//Compute the Jacobian
-         	//System.out.println("Compute Jacobian "+noPnts);
-         	for (int i =0;i<noPnts;++i){
-         		double[] xxu = new double[]{xu[i],yu[i]};
-         		double[] xxd = new double[]{xd[i],yd[i]};
-         		//The derivative of a undistorted normalized point
-         		//System.out.println("Compute Jacobian dxxu " +i);
-         		Matrix[] dxxu = compute_dxxu(new double[]{XXw[0][i],XXw[1][i],XXw[2][i]}, R, t, w);
-         		//The derivative of a distorted normalized point
-         		//System.out.println("Compute Jacobian dxxd " +i);
-            	Matrix[] dxxd = compute_dxxd(xxu, d, dxxu[0], dxxu[1]);
-         		
-         		// The derivative of a distotred 2D pixel points
-         		//System.out.println("Compute Jacobian dxx " +i);
-            	Matrix[] dxx = Compute_dxx(xxd, K, d, dxxd[0], dxxd[1], dxxd[2]);
-            	//Add the data to the Jacobian
-            	//System.out.println("Compute Jacobian tempRow " +i);
-            	double[] tempRow = new double[(dxx[0].getArray())[0].length+(dxx[1].getArray())[0].length+(dxx[2].getArray())[0].length+(dxx[3].getArray())[0].length];
-            	//System.out.println("[0] "+(dxx[0].getArray())[0].length+" "+(dxx[1].getArray())[0].length+" "+(dxx[2].getArray())[0].length+" "+(dxx[3].getArray())[0].length);
-            	for (int k = 0;k<2;++k){
-            		int tempC = 0;
-            		//System.out.println("dxx[0] "+k);
-            		for (int tempI = 0; tempI<(dxx[0].getArray())[k].length;++tempI){
-            			tempRow[tempC++] = dxx[0].get(k,tempI);
-            		}
-            		//System.out.println("dxx[1] "+k);
-            		for (int tempI = 0; tempI<(dxx[1].getArray())[k].length;++tempI){
-            			tempRow[tempC++] = dxx[1].get(k,tempI);
-            		}
-            		//System.out.println("dxx[2] "+k);
-            		for (int tempI = 0; tempI<(dxx[2].getArray())[k].length;++tempI){
-            			tempRow[tempC++] = dxx[2].get(k,tempI);
-            		}
-            		//System.out.println("dxx[3] "+k);
-            		for (int tempI = 0; tempI<(dxx[3].getArray())[k].length;++tempI){
-            			tempRow[tempC++] = dxx[3].get(k,tempI);
-            		}
-            		//System.out.println("J "+k);
-            		for (int tempI = 0; tempI<tempRow.length;++tempI){
-            			J[2*i+k][tempI] = tempRow[tempI];
-         			}
-         			
-            	}
-            	//System.out.println("J nextRow " +i);
-         	}
-         	//System.out.println("Got Jacobian");
-         	H = new Matrix(J).transpose().times(new Matrix(J));
-         	//System.out.println("H");
+				w = Arrays.copyOf(w_lm,w_lm.length);
+				dist  = Arrays.copyOf(dist_lm,dist_lm.length);
+				//Compute the Jacobian
+				//System.out.println("Compute Jacobian "+noPnts);
+				for (int i =0;i<noPnts;++i){
+					double[] xxu = new double[]{xu[i],yu[i]};
+					double[] xxd = new double[]{xd[i],yd[i]};
+					//The derivative of a undistorted normalized point
+					//System.out.println("Compute Jacobian dxxu " +i);
+					Matrix[] dxxu = compute_dxxu(new double[]{XXw[0][i],XXw[1][i],XXw[2][i]}, R, t, w);
+					//The derivative of a distorted normalized point
+					//System.out.println("Compute Jacobian dxxd " +i);
+					Matrix[] dxxd = compute_dxxd(xxu, d, dxxu[0], dxxu[1]);
+					
+					// The derivative of a distotred 2D pixel points
+					//System.out.println("Compute Jacobian dxx " +i);
+					Matrix[] dxx = Compute_dxx(xxd, K, d, dxxd[0], dxxd[1], dxxd[2]);
+					//Add the data to the Jacobian
+					//System.out.println("Compute Jacobian tempRow " +i);
+					double[] tempRow = new double[(dxx[0].getArray())[0].length+(dxx[1].getArray())[0].length+(dxx[2].getArray())[0].length+(dxx[3].getArray())[0].length];
+					//System.out.println("[0] "+(dxx[0].getArray())[0].length+" "+(dxx[1].getArray())[0].length+" "+(dxx[2].getArray())[0].length+" "+(dxx[3].getArray())[0].length);
+					for (int k = 0;k<2;++k){
+						int tempC = 0;
+						//System.out.println("dxx[0] "+k);
+						for (int tempI = 0; tempI<(dxx[0].getArray())[k].length;++tempI){
+							tempRow[tempC++] = dxx[0].get(k,tempI);
+						}
+						//System.out.println("dxx[1] "+k);
+						for (int tempI = 0; tempI<(dxx[1].getArray())[k].length;++tempI){
+							tempRow[tempC++] = dxx[1].get(k,tempI);
+						}
+						//System.out.println("dxx[2] "+k);
+						for (int tempI = 0; tempI<(dxx[2].getArray())[k].length;++tempI){
+							tempRow[tempC++] = dxx[2].get(k,tempI);
+						}
+						//System.out.println("dxx[3] "+k);
+						for (int tempI = 0; tempI<(dxx[3].getArray())[k].length;++tempI){
+							tempRow[tempC++] = dxx[3].get(k,tempI);
+						}
+						//System.out.println("J "+k);
+						for (int tempI = 0; tempI<tempRow.length;++tempI){
+							J[2*i+k][tempI] = tempRow[tempI];
+						}
+						
+					}
+					//System.out.println("J nextRow " +i);
+				}
+				//System.out.println("Got Jacobian");
+				H = new Matrix(J).transpose().times(new Matrix(J));
+				//System.out.println("H");
 				//H.getMatrix(new int[]{0,1,2,3,4},new int[]{0,1,2,3,4}).print(3,3);
 				//update damping factor
 				if (n == 0){
@@ -263,7 +263,9 @@ public class RefineParameters{
 					 lambda = lambda/10;
 				}
 			}else{
+				
 				lambda = lambda*10;
+				System.out.println("Lambda x 10 "+lambda);
 			}
 			//Apply the damping factor to the Hessian matrix
 			H_lm = H.plus(Matrix.identity(noParam, noParam).times(lambda));
@@ -284,8 +286,8 @@ public class RefineParameters{
 			for (int i = 0;i<delta.length;++i){
 				delta[i] = deltaM.get(i,0);
 			}
-			//System.out.println("delta "+n);
-			//deltaM.transpose().print(4,4);
+			System.out.println("delta "+n);
+			deltaM.transpose().print(4,4);
 			//System.out.println((deltaM.getArray()).length+" "+(deltaM.getArray())[0].length);
 			
 		}
