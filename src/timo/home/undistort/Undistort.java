@@ -7,7 +7,12 @@ public class Undistort{
 	BufferedImage ubi;	//Undistorted buffered image
 	/*Constructor*/
 	public Undistort(BufferedImage bi, double scaleFactor, Matrix K, Matrix d){
+		int width =bi.getWidth();
+		int height = bi.getHeight();
 		byte[][][] pixArr = getPixelArray(bi);
+		byte[][][] undistorted = new byte[height][width][3];
+		for (int r = 0
+
 	
 	}
 
@@ -44,39 +49,29 @@ public class Undistort{
 		*/
    private static byte[][][] getPixelArray(BufferedImage image) {
 
-      final byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-      final int width = image.getWidth();
-      final int height = image.getHeight();
-      final boolean hasAlphaChannel = image.getAlphaRaster() != null;
-
-      byte[][][] result = new byte[height][width][3];
-      if (hasAlphaChannel) {
-         final int pixelLength = 4;
-         for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
-            result[row][col][0] = pixels[pixel + 1]; //b
-            result[row][col][1] = pixels[pixel + 2]; //g
-            result[row][col][2] = pixels[pixel + 3]; //r
-            col++;
-            if (col == width) {
-               col = 0;
-               row++;
-            }
-         }
-      } else {
-         final int pixelLength = 3;
-         for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
-            result[row][col][0] = pixels[pixel]; //b
-            result[row][col][1] = pixels[pixel + 1]; //g
-            result[row][col][2] = pixels[pixel + 2]; //r
-            col++;
-            if (col == width) {
-               col = 0;
-               row++;
-            }
-         }
-      }
-      return result;
-   }
+		final byte[] pixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+		final int width = image.getWidth();
+		final int height = image.getHeight();
+		final boolean hasAlphaChannel = image.getAlphaRaster() != null;
+		int pixelLength = 4;
+		if (image.getAlphaRaster()!= null){
+			pixelLength = 4;
+		}else{
+			pixelLength = 3;
+		}
+		byte[][][] result = new byte[height][width][3];
+		for (int pixel = 0, row = 0, col = 0; pixel < pixels.length; pixel += pixelLength) {
+			result[row][col][0] = pixels[pixel + pixelLength-3]; //b
+			result[row][col][1] = pixels[pixel + pixelLength-2]; //g
+			result[row][col][2] = pixels[pixel + pixelLength-1]; //r
+			col++;
+			if (col == width) {
+			   col = 0;
+			   row++;
+			}
+		}
+        return result;
+	}
 	
 	/*Taken from http://stackoverflow.com/questions/6524196/java-get-pixel-array-from-image*/
    private static int[][] getPixelArrayInt(BufferedImage image) {

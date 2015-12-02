@@ -94,6 +94,7 @@ public class Sample3D extends JFrame{
 			KdRt.get(2).print(3,3);
 			System.out.println("t");
 			KdRt.get(3).print(3,3);
+			Undistort ud = new Undistort(ip[i].getBI(), ip[i].getScaleFactor(), KdRt.get(0), KdRt.get(1));
 					
 		}
 		
