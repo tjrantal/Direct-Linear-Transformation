@@ -24,9 +24,9 @@ public class Undistort{
 		double[][] xxTemp = new double[3][width*height];
 		for (int r = 0;r<height;++r){
 			for (int c = 0; c<width;++c){
-				xxTemp[0][c*r*width] = c;
-				xxTemp[1][c*r*width] = r;
-				xxTemp[2][c*r*width] = 1d;
+				xxTemp[0][c+r*width] = c;
+				xxTemp[1][c+r*width] = r;
+				xxTemp[2][c+r*width] = 1d;
 			}
 		}
 		Matrix xx_u = invK.times(new Matrix(xxTemp));
