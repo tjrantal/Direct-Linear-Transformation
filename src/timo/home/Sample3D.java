@@ -55,8 +55,13 @@ public class Sample3D extends JFrame{
 		//Add images
 		JComponent cp = new JPanel();
 		ImagePanel[] ip = new ImagePanel[4];
-		ip[0] = loadImage("octaveTest/GOPR0093.JPG");
-		ip[1] = loadImage("octaveTest/GOPR0099.JPG");
+		//Scale images down to 1/5th. My laptop couldn't handle the full image...
+		ImagePanel tempI = loadImage("octaveTest/GOPR0093.JPG");
+		ip[0] = new ImagePanel(tempI.scaleImage(tempI.getOrig(),0.2));
+		ip[0].setOpaque(true);
+		tempI = loadImage("octaveTest/GOPR0099.JPG");
+		ip[1] = new ImagePanel(tempI.scaleImage(tempI.getOrig(),0.2));
+		ip[1].setOpaque(true);
 		
 		double[][] calibrationObject = getCoords(cr[2]);
 		/*
@@ -72,48 +77,65 @@ public class Sample3D extends JFrame{
 		*/
 		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
 		for (int i = 0;i<2;++i){
+			
 			//System.out.println("Cam "+i);
-			ArrayList<Matrix> KRt = lc.calibrate(getCoords(cr[i]));
-			/*
-			System.out.println("K");
-			KRt.get(0).print(3,3);
-			System.out.println("R");
-			KRt.get(1).print(3,3);
-			System.out.println("t");
-			KRt.get(2).print(3,3);
-			System.out.println("");
-			*/
-			//Refine the calibration
-			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));
-			ArrayList<Matrix> KdRt = rp.getCalibration();
-			/*
-			System.out.println("K");
-			KdRt.get(0).print(3,3);
-			System.out.println("d");
-			KdRt.get(1).print(3,3);
-			System.out.println("R");
-			KdRt.get(2).print(3,3);
-			System.out.println("t");
-			KdRt.get(3).print(3,3);
-			*/
-			Undistort ud = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
-			ip[i+2] = new ImagePanel(ud.ubi);					
-		}
-		
-		
-		
-		for (int i =0;i<ip.length;++i){
-			if (i<2){
-				ip[i].plotCoordinates(getCoords(cr[i]));
-			}else{
-				ip[i].paintImageToDraw();
+			double[][] digitized = getCoords(cr[i]);
+			//Scale the coordinates down by 5. My laptop couldn't handle the full image...
+			for (int r = 0;r<digitized.length;++r){
+				System.out.print(r+"\t");
+				for (int c = 0;c<digitized[r].length;++c){
+					digitized[r][c]/=5d;
+					System.out.print(digitized[r][c]+"\t");
+				}
+				System.out.println("");	
 			}
+			
+			ArrayList<Matrix> KRt = lc.calibrate(digitized);
+			
+			if(false){
+				System.out.println("K");
+				KRt.get(0).print(3,3);
+				System.out.println("R");
+				KRt.get(1).print(3,3);
+				System.out.println("t");
+				KRt.get(2).print(3,3);
+				System.out.println("");
+			}
+			
+			//Refine the calibration
+			RefineParameters rp = new RefineParameters(calibrationObject,digitized,KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));
+			ArrayList<Matrix> KdRt = rp.getCalibration();
+			
+			
+			if(false){
+				System.out.println("refined K");
+				KdRt.get(0).print(3,3);
+				System.out.println("d");
+				KdRt.get(1).print(3,3);
+				System.out.println("R");
+				KdRt.get(2).print(3,3);
+				System.out.println("t");
+				KdRt.get(3).print(3,3);
+			}
+			
+			
+			Undistort ud = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
+			ip[i+2] = new ImagePanel(ud.ubi);
+			
+			ip[i].plotCoordinates(digitized);
+			
+			ip[i+2].paintImageToDraw();
+			ip[i+2].setOpaque(true);
+			
 			cp.add(ip[i]);
+			cp.add(ip[i+2]);
+			
 		}
+
 		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
 		pack();
-		setSize(new Dimension(680,500));
+		setSize(new Dimension(680,550));
 	   setVisible(true);
 	}
 

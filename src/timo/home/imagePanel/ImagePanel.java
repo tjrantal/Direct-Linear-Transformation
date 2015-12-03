@@ -71,6 +71,13 @@ public class ImagePanel extends JPanel{
 		return scaleFactor;
 	}
 	
+	public BufferedImage scaleImage(BufferedImage biIn,double relativeSize){
+		Image scale =  biIn.getScaledInstance((int) (biIn.getWidth()*relativeSize),-1,Image.SCALE_SMOOTH);
+		BufferedImage tempBi = new BufferedImage(scale.getWidth(null),scale.getHeight(null),biIn.getType());
+		tempBi.getGraphics().drawImage(scale, 0, 0 , null);
+		return tempBi;
+	}
+	
 	public BufferedImage createImageFromBytes(byte[][][] dataSource){
 		int w = dataSource[0].length;
 		int h = dataSource.length;
