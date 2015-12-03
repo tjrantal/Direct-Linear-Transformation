@@ -8,7 +8,7 @@ public class Undistort{
 	public BufferedImage ubi;	//Undistorted buffered image
 	/*Constructor*/
 	public Undistort(ImagePanel ip, Matrix K, Matrix d){
-		BufferedImage bi = ip.getBI();
+		BufferedImage bi = ip.getOrig();
 		int width =bi.getWidth();
 		int height = bi.getHeight();
 		byte[][][] pixArr = getPixelArray(bi);
@@ -21,19 +21,32 @@ public class Undistort{
 		double k3 = d.get(4,0);
 		double p1 = d.get(2,0);
 		double p2 = d.get(3,0);
+		double[][] xxTemp = new double[3][width*height];
 		for (int r = 0;r<height;++r){
 			for (int c = 0; c<width;++c){
-				Matrix xx_u = invK.times(new Matrix(new double[]{c,r,1d},3));
-				//xx_u.print(3,3);
-				x_u = xx_u.get(0,0);
-				y_u = xx_u.get(1,0);
-				radius = Math.sqrt(x_u*x_u + y_u*y_u);
-				radial = (1 + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
-				xx_d[0] = radial*x_u + 2*p1*x_u*y_u + p2*(radius*radius + 2*x_u*x_u);
-				xx_d[1] = radial*y_u + p1*(radius*radius + 2*y_u*y_u) + 2*p2*x_u*y_u;
-				xx_d[2] = 1d;
-				Matrix xx_dim = K.times(new Matrix(xx_d,3));
-				undistorted[r][c] = getBilinearInterpolatedPixel(xx_dim.get(0,0),xx_dim.get(1,0),pixArr);								
+				xxTemp[0][c*r*width] = c;
+				xxTemp[1][c*r*width] = r;
+				xxTemp[2][c*r*width] = 1d;
+			}
+		}
+		Matrix xx_u = invK.times(new Matrix(xxTemp));
+		double[][] xxdTemp = new double[3][width*height];
+		double[][] xx_up= xx_u.getArray();
+		for (int i = 0;i<width*height;++i){
+			x_u = xx_up[0][i];
+			y_u = xx_up[1][i];
+			radius = Math.sqrt(x_u*x_u + y_u*y_u);
+			radial = (1 + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
+			xxdTemp[0][i] = radial*x_u + 2*p1*x_u*y_u + p2*(radius*radius + 2*x_u*x_u);
+			xxdTemp[1][i] = radial*y_u + p1*(radius*radius + 2*y_u*y_u) + 2*p2*x_u*y_u;
+			xxdTemp[2][i] = 1d;
+		}
+		Matrix xx_dim = K.times(new Matrix(xxdTemp));
+		double[][] xx_dimp = xx_dim.getArray();
+		for (int r = 0;r<height;++r){
+			for (int c = 0; c<width;++c){
+				undistorted[r][c] = getBilinearInterpolatedPixel(xx_dimp[0][c+r*width],xx_dimp[0][c+r*width],pixArr);
+				//undistorted[r][c] = pixArr[r][c];								
 			}
 		}
 		ubi = ip.createImageFromBytes(undistorted);	

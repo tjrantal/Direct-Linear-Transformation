@@ -11,11 +11,13 @@ import java.text.DecimalFormat;	//For rounding text
 
 public class ImagePanel extends JPanel{
 	BufferedImage bi;
+	BufferedImage orig;
 	double scaleFactor;
 	public int origWidth;
 	public int origHeight;
 	public ImagePanel(BufferedImage biIn){
 		//Scale the image
+		orig = biIn;
 		origWidth = biIn.getWidth();
 		origHeight = biIn.getHeight();
 		Image scale =  biIn.getScaledInstance(-1,250,Image.SCALE_SMOOTH);
@@ -56,6 +58,11 @@ public class ImagePanel extends JPanel{
 	public BufferedImage getBI(){
 		return bi;
 	}
+	
+	public BufferedImage getOrig(){
+		return orig;
+	}
+	
 	public void setBI(BufferedImage bi){
 		this.bi = bi;
 	}
@@ -71,6 +78,7 @@ public class ImagePanel extends JPanel{
 		for (int r =0;r<h;++r){
 			for (int c =0;c<w;++c){
 				pix[c+r*w] = (255 << 24) | ((((int) dataSource[r][c][2]) & 0xff) << 16) | ((((int) dataSource[r][c][1]) & 0xff) << 8) | ((((int) dataSource[r][c][0] & 0xff)));
+				//pix[c+r*w] = (255 << 24) | 255 << 16;
 			}
 		}
 		Image img = createImage(new MemoryImageSource(w, h, pix, 0, w));

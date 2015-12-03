@@ -113,6 +113,7 @@ public class Sample3D extends JFrame{
 		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
 		pack();
+		setSize(new Dimension(680,500));
 	   setVisible(true);
 	}
 
