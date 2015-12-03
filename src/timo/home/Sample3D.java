@@ -54,7 +54,7 @@ public class Sample3D extends JFrame{
 		
 		//Add images
 		JComponent cp = new JPanel();
-		ImagePanel[] ip = new ImagePanel[2];
+		ImagePanel[] ip = new ImagePanel[4];
 		ip[0] = loadImage("octaveTest/GOPR0093.JPG");
 		ip[1] = loadImage("octaveTest/GOPR0099.JPG");
 		
@@ -71,8 +71,8 @@ public class Sample3D extends JFrame{
 		}
 		*/
 		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
-		for (int i = 0;i<1;++i){
-			System.out.println("Cam "+i);
+		for (int i = 0;i<2;++i){
+			//System.out.println("Cam "+i);
 			ArrayList<Matrix> KRt = lc.calibrate(getCoords(cr[i]));
 			/*
 			System.out.println("K");
@@ -86,6 +86,7 @@ public class Sample3D extends JFrame{
 			//Refine the calibration
 			RefineParameters rp = new RefineParameters(calibrationObject,getCoords(cr[i]),KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));
 			ArrayList<Matrix> KdRt = rp.getCalibration();
+			/*
 			System.out.println("K");
 			KdRt.get(0).print(3,3);
 			System.out.println("d");
@@ -94,14 +95,19 @@ public class Sample3D extends JFrame{
 			KdRt.get(2).print(3,3);
 			System.out.println("t");
 			KdRt.get(3).print(3,3);
-			Undistort ud = new Undistort(ip[i].getBI(), ip[i].getScaleFactor(), KdRt.get(0), KdRt.get(1));
-					
+			*/
+			Undistort ud = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
+			ip[i+2] = new ImagePanel(ud.ubi);					
 		}
 		
 		
 		
 		for (int i =0;i<ip.length;++i){
-			ip[i].plotCoordinates(getCoords(cr[i]));
+			if (i<2){
+				ip[i].plotCoordinates(getCoords(cr[i]));
+			}else{
+				ip[i].paintImageToDraw();
+			}
 			cp.add(ip[i]);
 		}
 		cp.setOpaque(true); // must be opaque	

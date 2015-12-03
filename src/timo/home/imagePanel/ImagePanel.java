@@ -63,4 +63,19 @@ public class ImagePanel extends JPanel{
 	public double getScaleFactor(){
 		return scaleFactor;
 	}
+	
+	public BufferedImage createImageFromBytes(byte[][][] dataSource){
+		int w = dataSource[0].length;
+		int h = dataSource.length;
+		int[] pix = new int[w*h];
+		for (int r =0;r<h;++r){
+			for (int c =0;c<w;++c){
+				pix[c+r*w] = (255 << 24) | ((((int) dataSource[r][c][2]) & 0xff) << 16) | ((((int) dataSource[r][c][1]) & 0xff) << 8) | ((((int) dataSource[r][c][0] & 0xff)));
+			}
+		}
+		Image img = createImage(new MemoryImageSource(w, h, pix, 0, w));
+		BufferedImage temp = new BufferedImage(img.getWidth(null),img.getHeight(null),BufferedImage.TYPE_INT_ARGB);
+		temp.getGraphics().drawImage(img, 0, 0 , null);
+		return temp;
+	}
 }

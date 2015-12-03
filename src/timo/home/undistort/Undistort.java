@@ -2,18 +2,41 @@ package timo.home.undristort;
 
 import Jama.*;
 import java.awt.image.*;
+import timo.home.imagePanel.ImagePanel;
 
 public class Undistort{
-	BufferedImage ubi;	//Undistorted buffered image
+	public BufferedImage ubi;	//Undistorted buffered image
 	/*Constructor*/
-	public Undistort(BufferedImage bi, double scaleFactor, Matrix K, Matrix d){
+	public Undistort(ImagePanel ip, Matrix K, Matrix d){
+		BufferedImage bi = ip.getBI();
 		int width =bi.getWidth();
 		int height = bi.getHeight();
 		byte[][][] pixArr = getPixelArray(bi);
 		byte[][][] undistorted = new byte[height][width][3];
-		for (int r = 0
-
-	
+		Matrix invK = K.inverse();
+		double x_u,y_u,radius,radial;
+		double[] xx_d = new double[3];
+		double k1 = d.get(0,0);
+		double k2 = d.get(1,0);
+		double k3 = d.get(4,0);
+		double p1 = d.get(2,0);
+		double p2 = d.get(3,0);
+		for (int r = 0;r<height;++r){
+			for (int c = 0; c<width;++c){
+				Matrix xx_u = invK.times(new Matrix(new double[]{c,r,1d},3));
+				//xx_u.print(3,3);
+				x_u = xx_u.get(0,0);
+				y_u = xx_u.get(1,0);
+				radius = Math.sqrt(x_u*x_u + y_u*y_u);
+				radial = (1 + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
+				xx_d[0] = radial*x_u + 2*p1*x_u*y_u + p2*(radius*radius + 2*x_u*x_u);
+				xx_d[1] = radial*y_u + p1*(radius*radius + 2*y_u*y_u) + 2*p2*x_u*y_u;
+				xx_d[2] = 1d;
+				Matrix xx_dim = K.times(new Matrix(xx_d,3));
+				undistorted[r][c] = getBilinearInterpolatedPixel(xx_dim.get(0,0),xx_dim.get(1,0),pixArr);								
+			}
+		}
+		ubi = ip.createImageFromBytes(undistorted);	
 	}
 
 	/** 
@@ -23,8 +46,8 @@ public class Undistort{
 	public static byte[] getBilinearInterpolatedPixel(double x0, double y0, byte[][][] data) {
 		int u0 = (int) Math.floor(x0);	//use floor to handle negative coordinates too
 		int v0 = (int) Math.floor(y0);
-		int width = data.length;
-		int height = data[0].length;
+		int width = data[0].length;
+		int height = data.length;
 		byte[] interp = new byte[3];
 		
 		if (u0>=0 && u0<width-1 && v0>= 0 && v0<height-1){
@@ -32,10 +55,10 @@ public class Undistort{
 			double y = (y0-(double)v0);
 			for (int i =0;i<3;++i){
 				interp[i] =(byte) (
-						((double) data[u0][v0][i])*(1-x)*(1-y) 	/*f(0,0)(1-x)(1-y)*/
-						+((double) data[u0+1][v0][i])*(1-y)*x	/*f(1,0)x(1-y)*/
-						+((double) data[u0][v0+1][i])*(1-x)*y	/*f(0,1)(1-x)y*/
-						+((double) data[u0+1][v0+1][i])*x*y	/*f(1,1)xy*/
+						((double) data[v0][u0][i])*(1-x)*(1-y) 	/*f(0,0)(1-x)(1-y)*/
+						+((double) data[v0+1][u0][i])*(1-y)*x	/*f(1,0)x(1-y)*/
+						+((double) data[v0][u0+1][i])*(1-x)*y	/*f(0,1)(1-x)y*/
+						+((double) data[v0+1][u0+1][i])*x*y	/*f(1,1)xy*/
 						);
 			}
 		}
