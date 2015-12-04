@@ -121,11 +121,10 @@ public class Sample3D extends JFrame{
 			
 			Undistort ud = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
 			ip[i+2] = new ImagePanel(ud.ubi);
-			
 			ip[i].plotCoordinates(digitized);
-			
-			ip[i+2].paintImageToDraw();
-			ip[i+2].setOpaque(true);
+			ip[i+2].plotCoordinates(ud.undistortCoordinates(digitized));
+			//ip[i+2].paintImageToDraw();
+			//ip[i+2].setOpaque(true);
 			
 			cp.add(ip[i]);
 			cp.add(ip[i+2]);

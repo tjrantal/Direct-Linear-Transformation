@@ -6,14 +6,20 @@ import timo.home.imagePanel.ImagePanel;
 
 public class Undistort{
 	public BufferedImage ubi;	//Undistorted buffered image
+	Matrix K;
+	Matrix d;
+	Matrix invK;
 	/*Constructor*/
 	public Undistort(ImagePanel ip, Matrix K, Matrix d){
+		this.K = K;
+		this.d = d;
+		invK = K.inverse();
+		
 		BufferedImage bi = ip.getOrig();
 		int width =bi.getWidth();
 		int height = bi.getHeight();
 		byte[][][] pixArr = getPixelArray(bi);
 		byte[][][] undistorted = new byte[height][width][3];
-		Matrix invK = K.inverse();
 		double x_u,y_u,radius,radial;
 		double[] xx_d = new double[3];
 		double k1 = d.get(0,0);
@@ -51,7 +57,43 @@ public class Undistort{
 		}
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
-
+	
+	public double[][] undistortCoordinates(double[][] coordinates){
+		double[][] undistorted = new double[coordinates.length][coordinates[0].length];
+		double x_u,y_u,radius,radial;
+		double[] xx_d = new double[3];
+		double k1 = d.get(0,0);
+		double k2 = d.get(1,0);
+		double k3 = d.get(4,0);
+		double p1 = d.get(2,0);
+		double p2 = d.get(3,0);
+		double[][] xxTemp = new double[3][coordinates.length];
+		for (int i = 0;i<coordinates.length;++i){
+				xxTemp[0][i] = coordinates[i][0];
+				xxTemp[1][i] = coordinates[i][1];
+				xxTemp[2][i] = 1d;
+		}
+		Matrix xx_u = invK.times(new Matrix(xxTemp));
+		double[][] xxdTemp = new double[3][coordinates.length];
+		double[][] xx_up= xx_u.getArray();
+		for (int i = 0;i<coordinates.length;++i){
+			x_u = xx_up[0][i];
+			y_u = xx_up[1][i];
+			radius = Math.sqrt(x_u*x_u + y_u*y_u);
+			radial = 1d/(1d + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
+			xxdTemp[0][i] = radial*x_u - 2*p1*x_u*y_u - p2*(radius*radius + 2*x_u*x_u);
+			xxdTemp[1][i] = radial*y_u - p1*(radius*radius + 2*y_u*y_u) - 2*p2*x_u*y_u;
+			xxdTemp[2][i] = 1d;
+		}
+		Matrix xx_dim = K.times(new Matrix(xxdTemp));
+		double[][] xx_dimp = xx_dim.getArray();
+		for (int i = 0;i<coordinates.length;++i){
+				undistorted[i][0] = xx_dimp[0][i];
+				undistorted[i][1] = xx_dimp[1][i];
+		}
+		return undistorted;
+	}
+	
 	/** 
 		Taken from the ImageJ source (http://imagej.nih.gov/ij/)
 		modified
