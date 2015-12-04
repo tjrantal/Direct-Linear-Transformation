@@ -82,12 +82,12 @@ public class Sample3D extends JFrame{
 			double[][] digitized = getCoords(cr[i]);
 			//Scale the coordinates down by 5. My laptop couldn't handle the full image...
 			for (int r = 0;r<digitized.length;++r){
-				System.out.print(r+"\t");
+				//System.out.print(r+"\t");
 				for (int c = 0;c<digitized[r].length;++c){
 					digitized[r][c]/=5d;
-					System.out.print(digitized[r][c]+"\t");
+					//System.out.print(digitized[r][c]+"\t");
 				}
-				System.out.println("");	
+				//System.out.println("");	
 			}
 			
 			ArrayList<Matrix> KRt = lc.calibrate(digitized);
