@@ -316,15 +316,9 @@ for n = 1:iter
     
     % Compute the updated parameters
     delta = -inv(H_lm)*(J'*dist(:));
-<<<<<<< HEAD
-	disp(['delta ' num2str(n)]);
-    disp(num2str(delta','%.3f'))
-=======
     %disp(['delta ' num2str(n)]);
     %disp(delta');
     %disp(dist');
-    
->>>>>>> 60ee71bb45b816d6c7d91a3f41dac292dc2b9a57
 end
 
 disp(['n ' num2str(n)]);
