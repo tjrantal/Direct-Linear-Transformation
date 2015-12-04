@@ -42,10 +42,12 @@ public class ImagePanel extends JPanel{
 		g2.setStroke(new BasicStroke());
 		int x,y;
 		for (int i = 0; i<coordinates.length;++i){
-			x = (int) (coordinates[i][0]*scaleFactor);
-			y = (int) (coordinates[i][1]*scaleFactor);
-			//System.out.println("Plotting "+x+"\t"+y);
-			g2.drawOval(x-2,y-2,4,4);
+			if (coordinates[i] != null){
+				x = (int) (coordinates[i][0]*scaleFactor);
+				y = (int) (coordinates[i][1]*scaleFactor);
+				//System.out.println("Plotting "+x+"\t"+y);
+				g2.drawOval(x-1,y-1,3,3);
+			}
 		}
 		g2.dispose();
 		paintImageToDraw();

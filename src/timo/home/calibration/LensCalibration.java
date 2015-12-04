@@ -52,24 +52,41 @@ public class LensCalibration{
 		@return KRt ArrayList<Matrix> of camera intrinsic matrix, rotation matrix, and translation vector (in matrix)
 	*/
 	public ArrayList<Matrix> calibrate(double[][] digitizedCalibrationObjectCoordinates){
-		//IMPLEMENT calibration here
-		double centred[][] = new double[digitizedCalibrationObjectCoordinates.length][2];
+		//Check for missing coordinates
+		int validCoords = 0;
+		for (int i = 0; i<digitizedCalibrationObjectCoordinates.length;++i){
+			if (digitizedCalibrationObjectCoordinates[i] != null){
+				++validCoords;
+			}	
+		}
+		//Indices for valid coordinates
+		int[] validIndices = new int[validCoords];
+		validCoords = 0;
+		for (int i = 0; i<digitizedCalibrationObjectCoordinates.length;++i){
+			if (digitizedCalibrationObjectCoordinates[i] != null){
+				validIndices[validCoords++] = i;
+			}	
+		}
+		
+		double centred[][] = new double[validIndices.length][2];
+		
+		
 		
 		for (int i = 0; i<centred.length;++i){
-			centred[i][0] = digitizedCalibrationObjectCoordinates[i][0]-u0;
-			centred[i][1] = digitizedCalibrationObjectCoordinates[i][1]-v0;
+			centred[i][0] = digitizedCalibrationObjectCoordinates[validIndices[i]][0]-u0;
+			centred[i][1] = digitizedCalibrationObjectCoordinates[validIndices[i]][1]-v0;
 		}
 		/*Prep the matrix for SVD*/
 		double[][] M = new double[centred.length][8];
 		double[][] calib = calibrationObjectGlobalCoordinates.getArray();
 		for (int i = 0; i<centred.length;++i){
-			M[i][0] = centred[i][0]*calib[i][0];
-			M[i][1] = centred[i][0]*calib[i][1];
-			M[i][2] = centred[i][0]*calib[i][2];
+			M[i][0] = centred[i][0]*calib[validIndices[i]][0];
+			M[i][1] = centred[i][0]*calib[validIndices[i]][1];
+			M[i][2] = centred[i][0]*calib[validIndices[i]][2];
 			M[i][3] = centred[i][0];
-			M[i][4] = -centred[i][1]*calib[i][0];
-			M[i][5] = -centred[i][1]*calib[i][1];
-			M[i][6] = -centred[i][1]*calib[i][2];
+			M[i][4] = -centred[i][1]*calib[validIndices[i]][0];
+			M[i][5] = -centred[i][1]*calib[validIndices[i]][1];
+			M[i][6] = -centred[i][1]*calib[validIndices[i]][2];
 			M[i][7] = -centred[i][1];
 		}
 		SingularValueDecomposition svd = new SingularValueDecomposition(new Matrix(M));
@@ -77,7 +94,7 @@ public class LensCalibration{
 		double scale = 1/Math.sqrt(Math.pow(V.get(0,7),2d)+Math.pow(V.get(1,7),2d)+Math.pow(V.get(2,7),2d));
 		double alpha = scale*Math.sqrt(Math.pow(V.get(4,7),2d)+Math.pow(V.get(5,7),2d)+Math.pow(V.get(6,7),2d));
 		
-		if (scale*centred[0][1]*(V.get(0,7)*calib[0][0] + V.get(1,7)*calib[0][1] + V.get(2,7)*calib[0][2] + V.get(3,7)) < 0){
+		if (scale*centred[0][1]*(V.get(0,7)*calib[validIndices[0]][0] + V.get(1,7)*calib[validIndices[0]][1] + V.get(2,7)*calib[validIndices[0]][2] + V.get(3,7)) < 0){
     		scale = -scale;
     	}
 		
@@ -96,13 +113,13 @@ public class LensCalibration{
 		Matrix R = svd2.getU().times(svd2.getV().transpose());
 		
 		//Compute fx, fy, and tz
-		double[] Xc = new double[calib.length];
-		double[] Yc = new double[calib.length];
-		double[] Zc_tz = new double[calib.length];
-		for (int i =0;i<calib.length;++i){
-			Xc[i]		= R.get(0,0)*calib[i][0] + R.get(0,1)*calib[i][1] + R.get(0,2)*calib[i][2] + t[0];
-			Yc[i] 	=  R.get(1,0)*calib[i][0] + R.get(1,1)*calib[i][1] + R.get(1,2)*calib[i][2] + t[1];
-			Zc_tz[i]	= R.get(2,0)*calib[i][0] + R.get(2,1)*calib[i][1] + R.get(2,2)*calib[i][2];
+		double[] Xc = new double[validIndices.length];
+		double[] Yc = new double[validIndices.length];
+		double[] Zc_tz = new double[validIndices.length];
+		for (int i =0;i<validIndices.length;++i){
+			Xc[i]		= R.get(0,0)*calib[validIndices[i]][0] + R.get(0,1)*calib[validIndices[i]][1] + R.get(0,2)*calib[validIndices[i]][2] + t[0];
+			Yc[i] 	=  R.get(1,0)*calib[validIndices[i]][0] + R.get(1,1)*calib[validIndices[i]][1] + R.get(1,2)*calib[validIndices[i]][2] + t[1];
+			Zc_tz[i]	= R.get(2,0)*calib[validIndices[i]][0] + R.get(2,1)*calib[validIndices[i]][1] + R.get(2,2)*calib[validIndices[i]][2];
 		}
 		
 		double[][] A = new double[centred.length*2][2];

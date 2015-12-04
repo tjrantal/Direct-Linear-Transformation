@@ -46,9 +46,35 @@ public class RefineParameters{
 		@param R, Rotation matrix from LensCalibration
 		@param t, Translation matrix from LensCalibration		
 	*/	
-	public RefineParameters(double[][] calib,double[][] digit, Matrix K, double[] d, Matrix R, Matrix t){
-		this.calib = calib;
-		this.digit = digit;
+	public RefineParameters(double[][] calibIn,double[][] digitIn, Matrix K, double[] d, Matrix R, Matrix t){
+		/*Exclude missing points*/
+		//Check for missing coordinates
+		int validCoords = 0;
+		for (int i = 0; i<digitIn.length;++i){
+			if (digitIn[i] != null){
+				++validCoords;
+			}	
+		}
+		//Indices for valid coordinates
+		int[] validIndices = new int[validCoords];
+		validCoords = 0;
+		for (int i = 0; i<digitIn.length;++i){
+			if (digitIn[i] != null){
+				validIndices[validCoords++] = i;
+			}	
+		}
+		
+		digit = new double[validIndices.length][2];
+		calib = new double[validIndices.length][3];
+		
+		
+		for (int i = 0; i<validIndices.length;++i){
+			digit[i][0] = digitIn[validIndices[i]][0];
+			digit[i][1] = digitIn[validIndices[i]][1];
+			calib[i][0] = calibIn[validIndices[i]][0];
+			calib[i][1] = calibIn[validIndices[i]][1];
+			calib[i][2] = calibIn[validIndices[i]][2];
+		}
 		this.K = K;
 		this.d = d;
 		this.R = R;

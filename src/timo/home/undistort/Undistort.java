@@ -58,8 +58,34 @@ public class Undistort{
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
 	
-	public double[][] undistortCoordinates(double[][] coordinates){
-		double[][] undistorted = new double[coordinates.length][coordinates[0].length];
+	public double[][] undistortCoordinates(double[][] coordinatesIn){
+		double[][] undistorted = new double[coordinatesIn.length][2];
+		/*Exclude missing points*/
+		//Check for missing coordinates
+		int validCoords = 0;
+		for (int i = 0; i<coordinatesIn.length;++i){
+			if (coordinatesIn[i] != null){
+				++validCoords;
+			}else{
+				undistorted[i] = null;	//Set invalid output to null
+			}
+		}
+		//Indices for valid coordinates
+		int[] validIndices = new int[validCoords];
+		validCoords = 0;
+		for (int i = 0; i<coordinatesIn.length;++i){
+			if (coordinatesIn[i] != null){
+				validIndices[validCoords++] = i;
+			}	
+		}
+		
+		double[][] coordinates = new double[validIndices.length][2];
+		
+		for (int i = 0; i<validIndices.length;++i){
+			coordinates[i][0] = coordinatesIn[validIndices[i]][0];
+			coordinates[i][1] = coordinatesIn[validIndices[i]][1];
+		}
+		
 		double x_u,y_u,radius,radial;
 		double[] xx_d = new double[3];
 		double k1 = d.get(0,0);
@@ -88,8 +114,8 @@ public class Undistort{
 		Matrix xx_dim = K.times(new Matrix(xxdTemp));
 		double[][] xx_dimp = xx_dim.getArray();
 		for (int i = 0;i<coordinates.length;++i){
-				undistorted[i][0] = xx_dimp[0][i];
-				undistorted[i][1] = xx_dimp[1][i];
+				undistorted[validIndices[i]][0] = xx_dimp[0][i];
+				undistorted[validIndices[i]][1] = xx_dimp[1][i];
 		}
 		return undistorted;
 	}

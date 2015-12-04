@@ -48,8 +48,8 @@ public class Sample3D extends JFrame{
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//Read digitized data
 		CSVReader[] cr = new CSVReader[3];
-	 	cr[0] = new CSVReader("octaveTest/GoPro0093.xls","\t");
-		cr[1] = new CSVReader("octaveTest/GoPro0099.xls","\t");
+	 	cr[0] = new CSVReader("octaveTest/GoPro0093.xls",",");
+		cr[1] = new CSVReader("octaveTest/GoPro0099.xls",",");
 		cr[2] = new CSVReader("octaveTest/calibrationObject.xls","\t");
 		
 		//Add images
@@ -80,12 +80,22 @@ public class Sample3D extends JFrame{
 			
 			//System.out.println("Cam "+i);
 			double[][] digitized = getCoords(cr[i]);
+			double[][] confirm = new double[digitized.length][2];
 			//Scale the coordinates down by 5. My laptop couldn't handle the full image...
 			for (int r = 0;r<digitized.length;++r){
 				//System.out.print(r+"\t");
 				for (int c = 0;c<digitized[r].length;++c){
 					digitized[r][c]/=5d;
 					//System.out.print(digitized[r][c]+"\t");
+				}
+				
+				//Set 50% of coordinates to null
+				if (r % 2 > 0){
+					confirm[r][0] = digitized[r][0];
+					confirm[r][0] = digitized[r][1]; 
+					digitized[r] = null;
+				}else{
+					confirm[r] = null;
 				}
 				//System.out.println("");	
 			}
