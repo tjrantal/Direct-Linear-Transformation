@@ -45,7 +45,7 @@ public class Undistort{
 		double[][] xx_dimp = xx_dim.getArray();
 		for (int r = 0;r<height;++r){
 			for (int c = 0; c<width;++c){
-				undistorted[r][c] = getBilinearInterpolatedPixel(xx_dimp[0][c+r*width],xx_dimp[0][c+r*width],pixArr);
+				undistorted[r][c] = getBilinearInterpolatedPixel(xx_dimp[0][c+r*width],xx_dimp[1][c+r*width],pixArr);
 				//undistorted[r][c] = pixArr[r][c];								
 			}
 		}
