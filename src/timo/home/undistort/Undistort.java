@@ -58,6 +58,21 @@ public class Undistort{
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
 	
+	/*Use wolfram-alpha (http://www.wolframalpha.com/) to solve the inverse operation
+		solve x=u*(1+k*r^2+l*r^4+m*r^6)+2*p*u*v+q*(r^2+2*u^2),y=v*(1+k*r^2+l*r^4+m*r^6)+p*(r^2+2*v^2)+2*q*u*v for u,v
+		
+		solve x=u*rad+2*p*u*v+q*(r^2+2*u^2),y=v*rad+p*(r^2+2*v^2)+2*q*u*v for u,v
+			
+		k = k1, l = k2, m = k3, p = p1, q = q2 
+		
+		Used sagemath to solve the equations
+		rad,r,u,v,x,y = var('rad, r, u, v, x, y')
+		solve([x==u*rad+2*p1*u*v+p2*(r^2+2*u^2),y==v*rad+p1*(r^2+2*v^2)+2*p2*u*v],u,v)
+		
+		rad = (1+k1*r^2+k2*r^4+k3*r^6)
+
+		
+	*/
 	public double[][] undistortCoordinates(double[][] coordinatesIn){
 		double[][] undistorted = new double[coordinatesIn.length][2];
 		/*Exclude missing points*/
@@ -106,9 +121,19 @@ public class Undistort{
 			x_u = xx_up[0][i];
 			y_u = xx_up[1][i];
 			radius = Math.sqrt(x_u*x_u + y_u*y_u);
-			radial = 1d/(1d + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
+			radial = (1d + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
+			/*
+			xxdTemp[0][i] = 1/2*(4*(Math.pow(p1,2d)*p2 + Math.pow(p2,3d))*Math.pow(radius,4d) - p2*Math.pow(radius,2d)*Math.pow(radial,2d) - Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p2*Math.pow(radius,2)*radial + 4*p2*Math.pow(x_u,2) - (4*(Math.pow(p1,2) + 2*Math.pow(p2,2))*Math.pow(radius,2) - Math.pow(radial,2) - Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*radial)*x_u - 4*(p1*p2*Math.pow(radius,2) - p1*x_u)*y_u)/((Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2)*radial + (Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*Math.pow(p1,2) + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*Math.pow(p2,2))*Math.pow(radius,2) - (p2*radial + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p2)*x_u - (p1*radial + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p1)*y_u);
+
+			xxdTemp[1][i] = -1/4*(p1*Math.pow(radius,2)*radial - radial*y_u + Math.sqrt(-8*(Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*(p1*Math.pow(radius,2) - y_u))/((Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2) - p2*x_u - p1*y_u);
+			*/
+			
+			/*
 			xxdTemp[0][i] = radial*x_u - 2*p1*x_u*y_u - p2*(radius*radius + 2*x_u*x_u);
 			xxdTemp[1][i] = radial*y_u - p1*(radius*radius + 2*y_u*y_u) - 2*p2*x_u*y_u;
+			*/
+			xxdTemp[0][i] = x_u/radial;
+			xxdTemp[1][i] = y_u/radial;
 			xxdTemp[2][i] = 1d;
 		}
 		Matrix xx_dim = K.times(new Matrix(xxdTemp));
