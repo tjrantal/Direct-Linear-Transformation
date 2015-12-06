@@ -236,7 +236,7 @@ for n = 1:iter
     % Re-projection Error
     rperr_lm = sqrt(dot(dist_lm,dist_lm)/noPnts/2);
     
-	disp(['RPERR ' num2str(rperr) ' ' num2str(rperr_lm)]);
+	%disp(['RPERR ' num2str(rperr) ' ' num2str(rperr_lm)]);
     if (rperr_lm <= rperr)
         %disp('Into rperr_lm<');
         param = [K(1,1); K(2,2); K(1,3); K(2,3); K(1,2); w; t; d];
@@ -308,7 +308,7 @@ for n = 1:iter
     % Prevent the matrix from being singular
     %disp([num2str(n) ' rcond ' num2str(rcond(H_lm)) ]);
     if (rcond(H_lm) < eps)
-		disp(['RCOND ' num2str(n)]);
+		%disp(['RCOND ' num2str(n)]);
         lambda = lambda*10;
         %disp(['RCOND' num2str(n) ]);
         H_lm = H + (lambda * eye(noParam, noParam));
