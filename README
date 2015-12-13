@@ -7,6 +7,11 @@ The folder octaveTest contains an octave script testDaesik, which combines Tsai'
 
 I'm satisfied with Tsai's camera calibration, and intend to implement that in java. More sophisticated camera calibration is available e.g. in the OpenCV library (opencv.org), but the implementation is in C++ instead of Java.
 
+NEXT TODO
+Test Newton's method to get undistorted points from distorted (points digitized on the original image) coordinates. This would be needed in order to not to have to use the interpolated undistorted image for analysis.
+
 In short, 3D motion capture with DLT comprises two steps:
 1) Plane(2D)/volume(3D) calibration using a known calibration object and digitizing the control points from each camera. The calibration object and digitized points are then used to obtain the DLT coefficients for each camera.  
 2) Digitizing unknown point(s) within the calibrated plane (or volume in 3D analysis, points from a minimum of two cameras) and applying the DLT to obtain the global coordinates.
+
+Typically camera calibration is also included to improve accuracy (e.g. Tsai's camera calibration). The DLT is then calculated on the calibrated undistorted coordinates.

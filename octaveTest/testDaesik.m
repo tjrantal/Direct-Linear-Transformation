@@ -109,7 +109,7 @@ for i = 1:length(cam)
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0], R, t);
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
 	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t,eps,30);
-	
+	%keyboard
   %Add lens distortion to projected calibration object coordinates
    noPnts = size(calibrationFrame,1);
     XXc = [R t]*[calibrationFrame'; ones(1,noPnts)];
@@ -176,7 +176,7 @@ for i = 1:length(cam)
   xx_d(2, :) = y_u./radial;
   uc = K*[xx_d; ones(1,noPnts)];
   plot(uc(1,:),uc(2,:),'ro','linestyle','none');
-  keyboard
+  %keyboard
 	%Plot undistorted digitized points
 	hold on;
   notes.uc(i).coords = undistortCoordinates(digitizedCoords,K,d);
@@ -187,9 +187,9 @@ for i = 1:length(cam)
   %Backproject all calibrationframe coordinates
   for cc = 1:size(calibrationFrame,1)
     bbc = backproject(notes.coeffs(i).coeff,calibrationFrame(cc,:));
-   plot(bbc(1),bbc(2),'ro');
+   plot(bbc(1),bbc(2),'yo');
   end
-  keyboard
+  %keyboard
   
 end
 
