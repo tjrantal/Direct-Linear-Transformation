@@ -149,36 +149,14 @@ for i = 1:length(cam)
   %Test calibration
 	undistorted = UndistImage(scaledImage, K, d);
 	if 0
-  notes.sp(i*2) = subplot(length(cam),2,i*2);
-  end
+  		notes.sp(i*2) = subplot(length(cam),2,i*2);
+	end
   
   figure('position',[10 10 1000 550]);
 	imshow(undistorted,[])
   hold on;
   
-  % Compute the distorted normalized point
-  xx_u = inv(K)*[digitizedCoords(:,1)';digitizedCoords(:,2)';ones(1,noPnts)];
-	x_u = xx_u(1, :);
-	y_u = xx_u(2, :);
-	r = sqrt(x_u.^2 + y_u.^2);
-  k1 = 0; k2 =0; k3 = 0;
-  if length(d) > 0
-    k1 = d(1);
-   end
-  if length(d) >1
-    k2 = d(2);
-  end
-  if length(d) ==5
-    k3 = d(5);
-  end
-  radial = (1 + k1*r.^2 + k2*r.^4 + k3*r.^6);
-  xx_d(1, :) =x_u./radial;
-  xx_d(2, :) = y_u./radial;
-  uc = K*[xx_d; ones(1,noPnts)];
-  plot(uc(1,:),uc(2,:),'ro','linestyle','none');
-  %keyboard
-	%Plot undistorted digitized points
-	hold on;
+	%Calculate undistorted points from digitized points
   notes.uc(i).coords = undistortCoordinates(digitizedCoords,K,d);
 	plot(notes.uc(i).coords(1,:),notes.uc(i).coords(2,:),'g.')
   notes.coeffs(i).coeff = getDLTcoeffs(calibrationFrame,notes.uc(i).coords');
@@ -186,11 +164,11 @@ for i = 1:length(cam)
   plot(notes.bp(i).bp(1),notes.bp(i).bp(2),'k*')
   %Backproject all calibrationframe coordinates
   for cc = 1:size(calibrationFrame,1)
-    bbc = backproject(notes.coeffs(i).coeff,calibrationFrame(cc,:));
-   plot(bbc(1),bbc(2),'yo');
+	 bbc = backproject(notes.coeffs(i).coeff,calibrationFrame(cc,:));
+	plot(bbc(1),bbc(2),'yo');
   end
-  %keyboard
-  
+  title(['Cam ' num2str(i) ' undistorted']);
+	keyboard;  
 end
 
 
