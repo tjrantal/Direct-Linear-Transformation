@@ -48,9 +48,6 @@ end
 
 %Subsample the image to not run out of memory...
 notes = struct();
-if 0
-notes.fh = figure('position',[10 10 1000 500])
-end
 for i = 1:length(cam)
 	digitizedCoords = cam(i).digitizedCoordinates./5;	%Scale the coordinates down by 5
 	tempImage = cam(i).image;
@@ -58,24 +55,21 @@ for i = 1:length(cam)
 	scaledImage = imresize(tempImage(:,:,1),0.2,'nearest');
 	scaledImage(:,:,2) = imresize(tempImage(:,:,2),0.2,'nearest');
 	scaledImage(:,:,3) = imresize(tempImage(:,:,3),0.2,'nearest');
-	 if 0
-	notes.sp(i*2-1) = subplot(length(cam),2,i*2-1);
+
+	figure('position',[10 10 1000 500])
 	imshow(scaledImage,[]);
 	hold on;
 	plot(digitizedCoords(:,1),digitizedCoords(:,2),'r.')
-  end
   %Calculate DLT and backprojection without lens distortion correction
   notes.ocoeffs(i).coeff = getDLTcoeffs(calibrationFrame,digitizedCoords);
   notes.obp(i).bp = backproject(notes.ocoeffs(i).coeff,[1.5,0,1.5]);
- 	%plot(notes.obp(i).bp(1),notes.obp(i).bp(2),'k*')
+ 	plot(notes.obp(i).bp(1),notes.obp(i).bp(2),'k*')
   %Backproject all calibrationframe coordinates
   for cc = 1:size(calibrationFrame,1)
     bbc = backproject(notes.ocoeffs(i).coeff,calibrationFrame(cc,:));
-   	if 0
     plot(bbc(1),bbc(2),'go');
-    end
   end
-  
+  title(['Cam ' num2str(i) ' distorted']);
   
 	imSize = size(scaledImage);
   %imSize = size(cam(i).image);
@@ -83,80 +77,19 @@ for i = 1:length(cam)
 	[K, R, t, rperr] = CalibTsai(digitizedCoords, calibrationFrame, imSize(2)/2, imSize(1)/2);
 	disp(['cam ' num2str(i) ' rperr no correction ' num2str(rperr)]);	
 	
-  if 1
-    %Test plotting normalised points...
-    noPnts = size(calibrationFrame,1);
-    XXc = [R t]*[calibrationFrame'; ones(1,noPnts)];
-    xu = XXc(1,:)./XXc(3,:);
-    yu = XXc(2,:)./XXc(3,:);
-    figure('position',[10 10 1000 500])
-    subplot(1,2,1)  
-    plot(xu,yu,'ro','linestyle','none');
-    %axis('equal');
-    set(gca,'ydir','reverse');
-    %hold on;
-    %plot(xu,yu,'ro','linestyle','none');
-    uv = K*[xu;yu;ones(1,noPnts)];
-    subplot(1,2,2)
-    plot(uv(1,:),uv(2,:),'ro','linestyle','none');
-    hold on;
-    plot(digitizedCoords(:,1),digitizedCoords(:,2),'ko','linestyle','none');
-    axis('equal');
-    set(gca,'ydir','reverse');
-    
-  end
   %Get distortion coefficients
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0], R, t);
 	%[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0], R, t);
 	[K, d, R, t, rperr] = RefineCamParam(digitizedCoords, calibrationFrame, K, [0,0,0,0,0], R, t,eps,30);
 	%keyboard
-  %Add lens distortion to projected calibration object coordinates
-   noPnts = size(calibrationFrame,1);
-    XXc = [R t]*[calibrationFrame'; ones(1,noPnts)];
-    xu = XXc(1,:)./XXc(3,:);
-    yu = XXc(2,:)./XXc(3,:);  
-    r = sqrt(xu.^2 + yu.^2);
-        %% Lens Distortion Parameters
-        k1 =0;k2=0;k3=0;p1=0;p2=0;
-        if length(d) > 0
-            k1 = d(1);
-            
-        end
-        if length(d) > 1
-            k2 = d(2); 
-        end
-        if length(d) > 3
-             p1 = d(3); p2 = d(4);  
-        end
-        if length(d) ==5 
-           
-           
-            k3 = d(5);
-        end
-        xd = xu.*(1 + k1*r.^2 + k2*r.^4 + k3*r.^6) + 2*p1*xu.*yu + p2*(r.^2 + 2*xu.^2);
-        yd = yu.*(1 + k1*r.^2 + k2*r.^4 + k3*r.^6) + p1*(r.^2 + 2*yu.^2) + 2*p2*xu.*yu;
-    uv = K*[xd;yd;ones(1,noPnts)];
-    plot(uv(1,:),uv(2,:),'g+','linestyle','none');
-  
-  
-  %K
-	%d
-	%R
-	%t
-	%keyboard;
   disp(['cam ' num2str(i) ' rperr with correction ' num2str(rperr)]);
 	
   %Test calibration
 	undistorted = UndistImage(scaledImage, K, d);
-	if 0
-  		notes.sp(i*2) = subplot(length(cam),2,i*2);
-	end
-  
   figure('position',[10 10 1000 550]);
 	imshow(undistorted,[])
   hold on;
-  
-	%Calculate undistorted points from digitized points
+ 	%Calculate undistorted points from digitized points
   notes.uc(i).coords = undistortCoordinates(digitizedCoords,K,d);
 	plot(notes.uc(i).coords(1,:),notes.uc(i).coords(2,:),'g.')
   notes.coeffs(i).coeff = getDLTcoeffs(calibrationFrame,notes.uc(i).coords');
@@ -168,7 +101,6 @@ for i = 1:length(cam)
 	plot(bbc(1),bbc(2),'yo');
   end
   title(['Cam ' num2str(i) ' undistorted']);
-	keyboard;  
 end
 
 
