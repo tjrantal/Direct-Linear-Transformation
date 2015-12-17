@@ -58,18 +58,19 @@ public class Undistort{
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
 	
-	/*Use wolfram-alpha (http://www.wolframalpha.com/) to solve the inverse operation
-		solve x=u*(1+k*r^2+l*r^4+m*r^6)+2*p*u*v+q*(r^2+2*u^2),y=v*(1+k*r^2+l*r^4+m*r^6)+p*(r^2+2*v^2)+2*q*u*v for u,v
+	/*
+		Has to be solved iteratively, used Gauss-Newton method (or could be just Newton's)
+		Used Sage to get the partial derivatives
 		
-		solve x=u*rad+2*p*u*v+q*(r^2+2*u^2),y=v*rad+p*(r^2+2*v^2)+2*q*u*v for u,v
-			
-		k = k1, l = k2, m = k3, p = p1, q = q2 
-		
-		Used sagemath to solve the equations
-		rad,r,u,v,x,y = var('rad, r, u, v, x, y')
-		solve([x==u*rad+2*p1*u*v+p2*(r^2+2*u^2),y==v*rad+p1*(r^2+2*v^2)+2*p2*u*v],u,v)
-		
-		rad = (1+k1*r^2+k2*r^4+k3*r^6)
+		k1,k2,k3,p1,p2,u,v,x,y = var('k1, k2, k3, p1, p2, u, v, x, y')
+		0==u*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+2*p1*u*v+p2*((u^2+v^2)+2*u^2)-x
+		0==v*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+p1*((u^2+v^2)+2*v^2)+2*p2*u*v-y
+
+		diff(0==u*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+2*p1*u*v+p2*((u^2+v^2)+2*u^2)-x,u)
+		diff(0==u*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+2*p1*u*v+p2*((u^2+v^2)+2*u^2)-x,v)
+		diff(0==v*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+p1*((u^2+v^2)+2*v^2)+2*p2*u*v-y,u)
+		diff(0==v*(1+k1*(u^2+v^2)+k2*(u^2+v^2)^2+k3*(u^2+v^2)^3)+p1*((u^2+v^2)+2*v^2)+2*p2*u*v-y,v)
+
 
 		
 	*/
@@ -101,7 +102,7 @@ public class Undistort{
 			coordinates[i][1] = coordinatesIn[validIndices[i]][1];
 		}
 		
-		double x_u,y_u,radius,radial;
+		
 		double[] xx_d = new double[3];
 		double k1 = d.get(0,0);
 		double k2 = d.get(1,0);
@@ -117,23 +118,26 @@ public class Undistort{
 		Matrix xx_u = invK.times(new Matrix(xxTemp));
 		double[][] xxdTemp = new double[3][coordinates.length];
 		double[][] xx_up= xx_u.getArray();
+		double x_u,y_u,x_d,y_d,diffXY,x_t,y_t;
+		int iterations;
+		Matrix xy1;
 		for (int i = 0;i<coordinates.length;++i){
 			x_u = xx_up[0][i];
 			y_u = xx_up[1][i];
-			radius = Math.sqrt(x_u*x_u + y_u*y_u);
-			radial = (1d + k1*radius*radius + k2*radius*radius*radius*radius  + k3*radius*radius*radius*radius*radius*radius);
-			/*
-			xxdTemp[0][i] = 1/2*(4*(Math.pow(p1,2d)*p2 + Math.pow(p2,3d))*Math.pow(radius,4d) - p2*Math.pow(radius,2d)*Math.pow(radial,2d) - Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p2*Math.pow(radius,2)*radial + 4*p2*Math.pow(x_u,2) - (4*(Math.pow(p1,2) + 2*Math.pow(p2,2))*Math.pow(radius,2) - Math.pow(radial,2) - Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*radial)*x_u - 4*(p1*p2*Math.pow(radius,2) - p1*x_u)*y_u)/((Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2)*radial + (Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*Math.pow(p1,2) + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*Math.pow(p2,2))*Math.pow(radius,2) - (p2*radial + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p2)*x_u - (p1*radial + Math.sqrt(-8*Math.pow(p1,2)*Math.pow(radius,2) - 8*Math.pow(p2,2)*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*p1)*y_u);
-
-			xxdTemp[1][i] = -1/4*(p1*Math.pow(radius,2)*radial - radial*y_u + Math.sqrt(-8*(Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2) + Math.pow(radial,2) + 8*p2*x_u + 8*p1*y_u)*(p1*Math.pow(radius,2) - y_u))/((Math.pow(p1,2) + Math.pow(p2,2))*Math.pow(radius,2) - p2*x_u - p1*y_u);
-			*/
+			x_d = x_u;
+			y_u = y_d;
+			diffXY = 100;
+			iterations = 0;
+			while (diffXY > Math.ulp(1d) && iterations < 100){
+				xy1 = new Matrix(new double[]{x_u,y_u},2).minus(new Matrix(jac(x_u,y_u,k1,k2,p1,p2,k3)).inverse().times(new Matrix(funct(x_u,y_u,x_d,y_d,k1,k2,p1,p2,k3),2)));
+				diffXY = Math.sqrt(Math.pow(xy1.get(0,0)-x_u,2d)+Math.pow(xy1.get(1,0)-x_u,2d));
+				x_u = xy1.get(0,0);
+				y_u = xy1.get(1,0);
+				++iterations;
+			}
 			
-			/*
-			xxdTemp[0][i] = radial*x_u - 2*p1*x_u*y_u - p2*(radius*radius + 2*x_u*x_u);
-			xxdTemp[1][i] = radial*y_u - p1*(radius*radius + 2*y_u*y_u) - 2*p2*x_u*y_u;
-			*/
-			xxdTemp[0][i] = x_u/radial;
-			xxdTemp[1][i] = y_u/radial;
+			xxdTemp[0][i] = x_u;
+			xxdTemp[1][i] = y_u;
 			xxdTemp[2][i] = 1d;
 		}
 		Matrix xx_dim = K.times(new Matrix(xxdTemp));
@@ -143,6 +147,30 @@ public class Undistort{
 				undistorted[validIndices[i]][1] = xx_dimp[1][i];
 		}
 		return undistorted;
+	}
+	
+	/**func*/
+	double[] funct(double u, double v, double x, double y, double k1, double k2, double p1, double p2, double k3){
+		double rSq = Math.pow(u,2d)+Math.pow(v,2d);
+		double[] radial = (1+k1*(rSq)+k2*Math.pow((rSq),2d)+k3*Math.pow((rSq),3d));
+		return new double[]{
+			u*radial+2*p1*u*v+p2*((rSq)+2*Math.pow(u,2d))-x,
+		 	v*radial+p1*((rSq)+2*Math.pow(v,2d))+2*p2*u*v-y
+		};
+	}
+	
+	/**Jacobian of func*/
+	double[][] jac(double u, double v, double k1, double k2, double p1, double p2, double k3){
+		double rSq = Math.pow(u,2d)+Math.pow(v,2d);
+		return new double[][] { 
+			{
+				Math.pow(rSq,3d)*k3 + Math.pow(rSq,2d)*k2 + (rSq)*k1 + 2*(3*Math.pow(rSq,2d)*k3*u + 2*(rSq)*k2*u + k1*u)*u + 6*p2*u + 2*p1*v + 1, 
+				2*(3*Math.pow(rSq,2d)*k3*v + 2*(rSq)*k2*v + k1*v)*u + 2*p1*u + 2*p2*v 
+			},{
+				2*p1*u + 2*(3*Math.pow(rSq,2d)*k3*u + 2*(rSq)*k2*u + k1*u)*v + 2*p2*v,
+				Math.pow(rSq,3d)*k3 + Math.pow(rSq,2d)*k2 + (rSq)*k1 + 2*p2*u + 2*(3*Math.pow(rSq,2d)*k3*v + 2*(rSq)*k2*v + k1*v)*v + 6*p1*v + 1
+			}
+		};
 	}
 	
 	/** 

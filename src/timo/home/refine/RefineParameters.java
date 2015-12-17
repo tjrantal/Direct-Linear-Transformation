@@ -92,7 +92,7 @@ public class RefineParameters{
 		//Start refining calibration
 		double theta = Math.acos((trace(R.getArray())-1d)/2d);
 		double[] w;
-		if (theta<Math.ulp(0d)){
+		if (theta<Math.ulp(1d)){
 			w = new double[3];
 		}else{
 			w = new double[]{
