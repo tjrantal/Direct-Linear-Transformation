@@ -92,7 +92,7 @@ public class Sample3D extends JFrame{
 				//Set 50% of coordinates to null
 				if (r % 2 > 0){
 					confirm[r][0] = digitized[r][0];
-					confirm[r][0] = digitized[r][1]; 
+					confirm[r][1] = digitized[r][1]; 
 					digitized[r] = null;
 				}else{
 					confirm[r] = null;
@@ -133,6 +133,7 @@ public class Sample3D extends JFrame{
 			ip[i+2] = new ImagePanel(ud.ubi);
 			ip[i].plotCoordinates(digitized);
 			ip[i+2].plotCoordinates(ud.undistortCoordinates(digitized));
+			ip[i+2].plotCoordinates(ud.undistortCoordinates(confirm), new Color(0,255,0));
 			//ip[i+2].paintImageToDraw();
 			//ip[i+2].setOpaque(true);
 			
