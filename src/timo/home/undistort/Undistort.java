@@ -82,11 +82,20 @@ public class Undistort{
 			//System.out.println("RotTrans "+(n+1));
 			//new Matrix(rotTrans).print(4,4);
 			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
-			double[][] returnCoords = new double[coordinates.length][2];
+			double[][] cameraCoords = new double[3][coordinates.length];
 			for (int i = 0; i<coordinates.length;++i){
-				returnCoords[i][0] = XXc.get(0,i)/XXc.get(2,i);
-				returnCoords[i][1] = XXc.get(1,i)/XXc.get(2,i);
+				cameraCoords[0][i]= XXc.get(0,i)/XXc.get(2,i);
+				cameraCoords[1][i] = XXc.get(1,i)/XXc.get(2,i);
+				cameraCoords[2][i]= 1d;
 			}
+			Matrix temp = K.times(new Matrix(cameraCoords));
+			double[][] tempP = temp.getArray();
+			double[][] returnCoords = new double[coordinates.length][2];
+			for (int i = 0;i<coordinates.length;++i){
+					returnCoords[i][0] = tempP[0][i];
+					returnCoords[i][1] = tempP[1][i];
+			}
+			
 			return returnCoords;	
 	}
 	
