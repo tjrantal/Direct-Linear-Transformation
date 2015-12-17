@@ -133,7 +133,9 @@ public class Sample3D extends JFrame{
 			ip[i+2] = new ImagePanel(ud.ubi);
 			ip[i].plotCoordinates(digitized);
 			ip[i+2].plotCoordinates(ud.undistortCoordinates(digitized));
-			ip[i+2].plotCoordinates(ud.undistortCoordinates(confirm), new Color(0,255,0));
+			//ip[i+2].plotCoordinates(ud.undistortCoordinates(confirm), new Color(0,255,0));
+			ip[i+2].plotCoordinates(ud.projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3)), new Color(0,255,0));
+			
 			//ip[i+2].paintImageToDraw();
 			//ip[i+2].setOpaque(true);
 			

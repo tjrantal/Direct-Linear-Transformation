@@ -58,6 +58,38 @@ public class Undistort{
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
 	
+	public double[][] projectKnownPoints(double[][] coordinates, Matrix R, Matrix t){
+			//Transpose the coordinates from Nx2 to 2xN (and add a row of 1s) 
+			double[][] XXw = new double[coordinates[0].length+1][coordinates.length];
+			//System.out.println("XXw " +XXw.length+" "+XXw[0].length);
+			for (int i = 0;i<coordinates.length;++i){
+				for (int j = 0; j<coordinates[i].length;++j){
+					XXw[j][i] = coordinates[i][j];
+				}
+				XXw[coordinates[i].length][i] = 1;
+			}
+			//3D points presented with respect to the camera coordinates
+			double[][] rotTrans = new double[3][4];
+			for (int i = 0; i<3;++i){
+				for (int j = 0; j<3;++j){
+					rotTrans[i][j] = R.get(i,j);
+				}
+			}
+			for (int i = 0; i<3;++i){
+				rotTrans[i][3] = t.get(i,0);
+			}
+
+			//System.out.println("RotTrans "+(n+1));
+			//new Matrix(rotTrans).print(4,4);
+			Matrix XXc = new Matrix(rotTrans).times(new Matrix(XXw));
+			double[][] returnCoords = new double[coordinates.length][2];
+			for (int i = 0; i<coordinates.length;++i){
+				returnCoords[i][0] = XXc.get(0,i)/XXc.get(2,i);
+				returnCoords[i][1] = XXc.get(1,i)/XXc.get(2,i);
+			}
+			return returnCoords;	
+	}
+	
 	/*
 		Has to be solved iteratively, used Gauss-Newton method (or could be just Newton's)
 		Used Sage to get the partial derivatives
