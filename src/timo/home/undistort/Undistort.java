@@ -125,7 +125,7 @@ public class Undistort{
 			x_u = xx_up[0][i];
 			y_u = xx_up[1][i];
 			x_d = x_u;
-			y_u = y_d;
+			y_d = y_u;
 			diffXY = 100;
 			iterations = 0;
 			while (diffXY > Math.ulp(1d) && iterations < 100){
@@ -152,7 +152,7 @@ public class Undistort{
 	/**func*/
 	double[] funct(double u, double v, double x, double y, double k1, double k2, double p1, double p2, double k3){
 		double rSq = Math.pow(u,2d)+Math.pow(v,2d);
-		double[] radial = (1+k1*(rSq)+k2*Math.pow((rSq),2d)+k3*Math.pow((rSq),3d));
+		double radial = (1+k1*(rSq)+k2*Math.pow((rSq),2d)+k3*Math.pow((rSq),3d));
 		return new double[]{
 			u*radial+2*p1*u*v+p2*((rSq)+2*Math.pow(u,2d))-x,
 		 	v*radial+p1*((rSq)+2*Math.pow(v,2d))+2*p2*u*v-y
