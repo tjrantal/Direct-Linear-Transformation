@@ -58,41 +58,62 @@ public class DLT3D{
 	
 	public Vector<Matrix> getDltCoefficients(double[][] calibrationObjectGlobalCoordinates,double[][][] L){
 		Vector<Matrix> coefficients = new Vector<Matrix>();
+		
+		
 		/*Go through cameras to calibrate*/
 		for (int c = 0;c<L.length;++c){
-			double[][] B = new double[2*calibrationObjectGlobalCoordinates.length][11];//Matrix for solving DLT-parameters
-			double[] C = new double[2*L[c].length]; //Digitized calibrationObject coordinates
+		
+			//Check for missing coordinates
+			int validCoords = 0;
+			for (int i = 0; i<L[c].length;++i){
+				if (L[c][i] != null){
+					++validCoords;
+				}
+			}
+			//Indices for valid coordinates
+			int[] validIndices = new int[validCoords];
+			validCoords = 0;
+			for (int i = 0; i<L[c].length;++i){
+				if (L[c][i] != null){
+					validIndices[validCoords++] = i;
+				}	
+			}
+			
+		
+		
+			double[][] B = new double[2*validIndices.length][11];//Matrix for solving DLT-parameters
+			double[] C = new double[2*validIndices.length]; //Digitized calibrationObject coordinates
 			int monta = 0;
-			for (int j =0;j<L[c].length;j++){
+			for (int j =0;j<validIndices.length;j++){
 				for (int i =0;i<2;i++){
-					C[monta] = L[c][j][i];
+					C[monta] = L[c][j][validIndices[i]];
 					++monta;
 				}
 			}
 		
-			for (int i=0;i<calibrationObjectGlobalCoordinates.length;i++){
-				B[2*i][0]	=calibrationObjectGlobalCoordinates[i][0];
-				B[2*i][1]	=calibrationObjectGlobalCoordinates[i][1];
-				B[2*i][2]	=calibrationObjectGlobalCoordinates[i][2];
+			for (int i=0;i<validIndices.length;i++){
+				B[2*i][0]	=calibrationObjectGlobalCoordinates[validIndices[i]][0];
+				B[2*i][1]	=calibrationObjectGlobalCoordinates[validIndices[i]][1];
+				B[2*i][2]	=calibrationObjectGlobalCoordinates[validIndices[i]][2];
 				B[2*i][3]	=1;
 				B[2*i][4]	=0;
 				B[2*i][5]	=0;
 				B[2*i][6]	=0;
 				B[2*i][7]	=0;
-				B[2*i][8]	=-calibrationObjectGlobalCoordinates[i][0]*L[c][i][0];
-				B[2*i][9]	=-calibrationObjectGlobalCoordinates[i][1]*L[c][i][0];
-				B[2*i][10]	=-calibrationObjectGlobalCoordinates[i][2]*L[c][i][0];
+				B[2*i][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][i][0];
+				B[2*i][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][i][0];
+				B[2*i][10]	=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][i][0];
 				B[2*i+1][0]	=0;
 				B[2*i+1][1]	=0;
 				B[2*i+1][2]	=0;
 				B[2*i+1][3]	=0;
-				B[2*i+1][4]	=calibrationObjectGlobalCoordinates[i][0];
-				B[2*i+1][5]	=calibrationObjectGlobalCoordinates[i][1];
-				B[2*i+1][6]	=calibrationObjectGlobalCoordinates[i][2];
+				B[2*i+1][4]	=calibrationObjectGlobalCoordinates[validIndices[i]][0];
+				B[2*i+1][5]	=calibrationObjectGlobalCoordinates[validIndices[i]][1];
+				B[2*i+1][6]	=calibrationObjectGlobalCoordinates[validIndices[i]][2];
 				B[2*i+1][7]	=1;
-				B[2*i+1][8]	=-calibrationObjectGlobalCoordinates[i][0]*L[c][i][1];
-				B[2*i+1][9]	=-calibrationObjectGlobalCoordinates[i][1]*L[c][i][1];
-				B[2*i+1][10]=-calibrationObjectGlobalCoordinates[i][2]*L[c][i][1];
+				B[2*i+1][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][i][1];
+				B[2*i+1][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][i][1];
+				B[2*i+1][10]=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][i][1];
 			}
 			//Solve the coefficients
 			Matrix A = new Matrix(B);
