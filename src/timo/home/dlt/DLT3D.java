@@ -86,7 +86,7 @@ public class DLT3D{
 			int monta = 0;
 			for (int j =0;j<validIndices.length;j++){
 				for (int i =0;i<2;i++){
-					C[monta] = L[c][j][validIndices[i]];
+					C[monta] = L[c][validIndices[j]][i];
 					++monta;
 				}
 			}
@@ -100,9 +100,9 @@ public class DLT3D{
 				B[2*i][5]	=0;
 				B[2*i][6]	=0;
 				B[2*i][7]	=0;
-				B[2*i][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][i][0];
-				B[2*i][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][i][0];
-				B[2*i][10]	=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][i][0];
+				B[2*i][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][validIndices[i]][0];
+				B[2*i][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][validIndices[i]][0];
+				B[2*i][10]	=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][validIndices[i]][0];
 				B[2*i+1][0]	=0;
 				B[2*i+1][1]	=0;
 				B[2*i+1][2]	=0;
@@ -111,9 +111,9 @@ public class DLT3D{
 				B[2*i+1][5]	=calibrationObjectGlobalCoordinates[validIndices[i]][1];
 				B[2*i+1][6]	=calibrationObjectGlobalCoordinates[validIndices[i]][2];
 				B[2*i+1][7]	=1;
-				B[2*i+1][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][i][1];
-				B[2*i+1][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][i][1];
-				B[2*i+1][10]=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][i][1];
+				B[2*i+1][8]	=-calibrationObjectGlobalCoordinates[validIndices[i]][0]*L[c][validIndices[i]][1];
+				B[2*i+1][9]	=-calibrationObjectGlobalCoordinates[validIndices[i]][1]*L[c][validIndices[i]][1];
+				B[2*i+1][10]=-calibrationObjectGlobalCoordinates[validIndices[i]][2]*L[c][validIndices[i]][1];
 			}
 			//Solve the coefficients
 			Matrix A = new Matrix(B);

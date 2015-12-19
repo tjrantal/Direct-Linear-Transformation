@@ -77,6 +77,7 @@ public class Sample3D extends JFrame{
 		*/
 		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
 		double[][][] undistortedCoord = new double[2][][];
+		double[][][] undistortedUnknown = new double[2][][];
 		for (int i = 0;i<2;++i){
 			
 			//System.out.println("Cam "+i);
@@ -136,6 +137,7 @@ public class Sample3D extends JFrame{
 			undistortedCoord[i] = ud.undistortCoordinates(digitized);
 			ip[i+2].plotCoordinates(undistortedCoord[i]);
 			//ip[i+2].plotCoordinates(ud.undistortCoordinates(confirm), new Color(0,255,0));
+			undistortedUnknown[i] = ud.undistortCoordinates(confirm);
 			ip[i+2].plotCoordinates(ud.projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3)), new Color(0,255,0));
 			
 			//ip[i+2].paintImageToDraw();
@@ -148,6 +150,8 @@ public class Sample3D extends JFrame{
 			
 		}
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
+		//Get 3D coords, and project to undistorted coords. UnknownPoints need to be undistorted as well
+		//Matrix coordinates = dlt3d.scaleCoordinates(digitizedUnknownPoint);
 		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
 		pack();
