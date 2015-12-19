@@ -58,7 +58,29 @@ public class Undistort{
 		ubi = ip.createImageFromBytes(undistorted);	
 	}
 	
-	public double[][] projectKnownPoints(double[][] coordinates, Matrix R, Matrix t){
+	public double[][] projectKnownPoints(double[][] coordinatesIn, Matrix R, Matrix t){
+			double[][] returnCoords = new double[coordinatesIn.length][2];
+			/*Exclude missing points*/
+			//Check for missing coordinates
+			int validCoords = 0;
+			for (int i = 0; i<coordinatesIn.length;++i){
+				if (coordinatesIn[i] != null){
+					++validCoords;
+				}else{
+					returnCoords[i] = null;	//Set invalid output to null
+				}
+			}
+			//Indices for valid coordinates
+			int[] validIndices = new int[validCoords];
+			double[][] coordinates = new double[validCoords][3];
+			validCoords = 0;
+			for (int i = 0; i<coordinatesIn.length;++i){
+				if (coordinatesIn[i] != null){
+					coordinates[validCoords] = coordinatesIn[i];
+					validIndices[validCoords++] = i;
+				}	
+			}
+			
 			//Transpose the coordinates from Nx2 to 2xN (and add a row of 1s) 
 			double[][] XXw = new double[coordinates[0].length+1][coordinates.length];
 			//System.out.println("XXw " +XXw.length+" "+XXw[0].length);
@@ -90,10 +112,9 @@ public class Undistort{
 			}
 			Matrix temp = K.times(new Matrix(cameraCoords));
 			double[][] tempP = temp.getArray();
-			double[][] returnCoords = new double[coordinates.length][2];
 			for (int i = 0;i<coordinates.length;++i){
-					returnCoords[i][0] = tempP[0][i];
-					returnCoords[i][1] = tempP[1][i];
+					returnCoords[validIndices[i]][0] = tempP[0][i];
+					returnCoords[validIndices[i]][1] = tempP[1][i];
 			}
 			
 			return returnCoords;	

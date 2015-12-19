@@ -78,6 +78,8 @@ public class Sample3D extends JFrame{
 		LensCalibration lc = new LensCalibration(calibrationObject,ip[0].origWidth/2,ip[0].origHeight/2);
 		double[][][] undistortedCoord = new double[2][][];
 		double[][][] undistortedUnknown = new double[2][][];
+		Undistort[] ud = new Undistort[2];
+		Matrix[][] Rt = new Matrix[2][2];
 		for (int i = 0;i<2;++i){
 			
 			//System.out.println("Cam "+i);
@@ -117,7 +119,8 @@ public class Sample3D extends JFrame{
 			//Refine the calibration
 			RefineParameters rp = new RefineParameters(calibrationObject,digitized,KRt.get(0),new double[]{0d,0d,0d,0d,0d},KRt.get(1),KRt.get(2));
 			ArrayList<Matrix> KdRt = rp.getCalibration();
-			
+			Rt[i][0]=KdRt.get(2);
+			Rt[i][1]=KdRt.get(3);
 			
 			if(false){
 				System.out.println("refined K");
@@ -131,14 +134,13 @@ public class Sample3D extends JFrame{
 			}
 			
 			
-			Undistort ud = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
-			ip[i+2] = new ImagePanel(ud.ubi);
+			ud[i] = new Undistort(ip[i], KdRt.get(0), KdRt.get(1));
+			ip[i+2] = new ImagePanel(ud[i].ubi);
 			ip[i].plotCoordinates(digitized);
-			undistortedCoord[i] = ud.undistortCoordinates(digitized);
+			undistortedCoord[i] = ud[i].undistortCoordinates(digitized);
 			ip[i+2].plotCoordinates(undistortedCoord[i]);
-			//ip[i+2].plotCoordinates(ud.undistortCoordinates(confirm), new Color(0,255,0));
-			undistortedUnknown[i] = ud.undistortCoordinates(confirm);
-			ip[i+2].plotCoordinates(ud.projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3)), new Color(0,255,0));
+			undistortedUnknown[i] = ud[i].undistortCoordinates(confirm);
+			ip[i+2].plotCoordinates(ud[i].projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3)), new Color(0,255,0));
 			
 			//ip[i+2].paintImageToDraw();
 			//ip[i+2].setOpaque(true);
@@ -151,6 +153,20 @@ public class Sample3D extends JFrame{
 		}
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
 		//Get 3D coords, and project to undistorted coords. UnknownPoints need to be undistorted as well
+		double[][] unknownUndistorted3D = new double[undistortedUnknown[0].length][3];
+		Matrix tempC;
+		for (int i =0;i<unknownUndistorted3D.length;++i){
+			if (undistortedUnknown[0][i] != null){
+				tempC = dlt3d.scaleCoordinates(new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
+				unknownUndistorted3D[i] = new double[]{tempC.get(0,0),tempC.get(1,0),tempC.get(2,0)};
+				//System.out.println("Marker "+i+" x "+tempC.get(0,0)+" y "+tempC.get(1,0)+" z "+tempC.get(2,0));
+			}else{
+				unknownUndistorted3D[i] = null;
+			}
+		}	
+		
+		ip[2].plotCoordinates(ud[0].projectKnownPoints(unknownUndistorted3D, Rt[0][0], Rt[0][1]), new Color(0,0,255));
+		ip[3].plotCoordinates(ud[1].projectKnownPoints(unknownUndistorted3D, Rt[1][0], Rt[1][1]), new Color(0,0,255));
 		//Matrix coordinates = dlt3d.scaleCoordinates(digitizedUnknownPoint);
 		cp.setOpaque(true); // must be opaque	
 		setContentPane(cp);
