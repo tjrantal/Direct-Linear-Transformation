@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-calibrationDigitized = 0;%1; %=0 if you haven't digitized yet, =1 if you have
+calibrationDigitized = 1;%1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'digitizedData2.mat';
 %Corners of the rubic cube squares are used as the calibration object
 %Origin is back lower corner of white side

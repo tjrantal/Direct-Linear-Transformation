@@ -1,0 +1,3 @@
+function  deltas = getDeltas(digitizedCoordinates,cam(i).coeffs)
+    for r = 1:size(calibObject,1)
+end

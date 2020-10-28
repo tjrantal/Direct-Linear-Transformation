@@ -1,0 +1,10 @@
+%Calculate camera calibration iteratively using levenbeg-marquardt
+%optimisation. Matlab defaults to numerical estimation of the Jacobian so
+%don't have to figure out the partial derivatives yourself (I think?).
+function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digitizedCoordinates,dtl11coeffs)
+    global calibObject digitizedCoords
+    calibObject = calibrationObjectGlobalCoordinates;
+    digitizedCoords = digitizedCoordinates;
+	coefficients = lsqnonlin(dlt16optim,[dtl11coeffs zeros(1,5)]);
+end
+

@@ -28,14 +28,6 @@ coordNames = {"GoPro0093.xls","GoPro0099.xls"};
 
 if calibrationDigitized == 1
 	load(dataSaveName);	%Load digitization
-    figure
-    for i = 1:length(cam)
-    subplot(1,2,i)
-    imshow(cam(i).image);
-    hold on;
-    plot(cam(i).digitizedCoordinates(:,1),cam(i).digitizedCoordinates(:,2),'r*','linestyle','none');
-    end
-    
 else
 	%Digitize calibration
 	%for i = 1:length(imageNames)
@@ -56,38 +48,24 @@ for i = 1:length(cam)
 	%11 coeffs
 	cam(i).coeffs11 = getDLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);   %Use regular DLT as the initial guess for optimisation
     %16 coeff
-	cam(i).coeffs = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,getPrincipalPoint(cam(i).coeffs11));    %Optimisation for camera distortion
+	cam(i).coeffs = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,getPrincipalPoint(coeffs11));    %Optimisation for camera distortion
     %Calculate error-corrected coordinates
     cam(i).deltas = getDeltas(cam(i).digitizedCoordinates,cam(i).coeffs);
     cam(i).corrected = cam(i).digitizedCoordinates-cam(i).deltas;
-    cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame,cam(i).corrected);   %Use regular DLT after distortion correction
-    
 end
 % keyboard;
 
 %Calculate calibrated 3D coordinates
 globalCoordinatesBasedOnDigitisation = zeros(size(calibrationFrame,1),size(calibrationFrame,2));
-global11 = zeros(size(calibrationFrame,1),size(calibrationFrame,2));
-globalCorr = zeros(size(calibrationFrame,1),size(calibrationFrame,2));
 for c = 1:size(cam(1).corrected)
     coefficients = [];
     coordinates = [];
-    coefficients11 = [];
-    coordinates11 = [];
-    coefficientsCorr = [];
-    coordinatesCorr = [];
     for r = 1:length(cam)
         coefficients(r,:) = cam(r).coeffs;
         coordinates(r,:) = cam(r).corrected(c,:);
-        coefficients11(r,:) = cam(r).coeffs11;
-        coordinates11(r,:) = cam(r).digitizedCoordinates(c,:);
-        coefficientsCorr(r,:) = cam(r).coeffsCorr;
-        coordinatesCorr(r,:) = cam(r).corrected(c,:);
     end
     
     globalCoordinatesBasedOnDigitisation(c,:) = getGlobalCoordinates(coefficients,coordinates);
-    global11(c,:) = getGlobalCoordinates(coefficients11,coordinates11);
-    globalCorr(c,:) = getGlobalCoordinates(coefficientsCorr,coordinatesCorr);
 end
 
 % 
@@ -125,15 +103,7 @@ plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'b
 ind = 29:37;
 plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'k+','linewidth',5)
 
-% plot3(globalCoordinatesBasedOnDigitisation(:,1),globalCoordinatesBasedOnDigitisation(:,2),globalCoordinatesBasedOnDigitisation(:,3),'co','linewidth',5);
-plot3(global11(:,1),global11(:,2),global11(:,3),'m*','linewidth',5);
-plot3(globalCorr(:,1),globalCorr(:,2),globalCorr(:,3),'g+','linewidth',5);
-
-disp(sprintf("Squared error dlt 11 %.2f",sum(sum((global11-calibrationFrame).^2),2)));
-disp(sprintf("Squared error dlt 16 %.2f",sum(sum((globalCorr-calibrationFrame).^2),2)));
-
-
-
+plot3(globalCoordinatesBasedOnDigitisation(:,1),globalCoordinatesBasedOnDigitisation(:,2),globalCoordinatesBasedOnDigitisation(:,3),'co','linewidth',5);
 % %Cameras
 % colorNames = {'r','b','k','g','y','m','c'};
 % for i =1:length(cam)
