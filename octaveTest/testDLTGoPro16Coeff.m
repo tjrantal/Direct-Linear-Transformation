@@ -74,6 +74,9 @@ for i = 1:length(cam)
     cam(i).corrected = cam(i).digitizedCoordinates-cam(i).deltas;
     cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).corrected(sampleIndices,:));   %Use regular DLT after distortion correction
     
+    %Visualise camera calibration
+    rectified = undistort(cam(i).image,cam(i).coeffs);
+    
     %Backproject calibration object!
     set(fh,'currentaxes',ah(i));
     for r = 1:size(calibrationFrame,1)
@@ -86,7 +89,15 @@ for i = 1:length(cam)
         disp(sprintf('cam %d marker %d diff x %.03f diff y %.03f',i,r, bProj(1)-(bProjected(1)-deltaBProj(1)),bProj(2)-(bProjected(2)-deltaBProj(2))));
 %         keyboard;
     end
+    
+    
+    
+    
 end
+
+
+
+
 % keyboard;
 
 %Calculate calibrated 3D coordinates
