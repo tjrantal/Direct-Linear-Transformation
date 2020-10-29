@@ -1,0 +1,15 @@
+marker	X Y	Z
+doorFloorRight	0	0	0
+doorFloorMid	30	0	0
+doorFloorBack	50	0	0
+floorRightMid	0	20	0
+floorRightY	0	50	0
+floorMidY	20	50	0
+floorBackY	50	50	0
+floorBackMid	50	30	0
+doorRightMid	0	0	40
+doorRightTop	0	0	80
+doorTopMid	20	0	80
+doorBackMid	50	0	40
+doorBackTop	50	0	80
+	

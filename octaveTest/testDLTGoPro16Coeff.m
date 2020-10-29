@@ -24,44 +24,66 @@ calibrationFrame = [0,0,0;1,0,0;2,0,0;3,0,0; ... %White bottom
 										];
 
 imageNames = {"GOPR0093.JPG","GOPR0099.JPG"};
-coordNames = {"GoPro0093.xls","GoPro0099.xls"};
 
+ah = [];
+fh = [];
 if calibrationDigitized == 1
 	load(dataSaveName);	%Load digitization
-    figure
+    fh = figure;
+    cnt = 0;
     for i = 1:length(cam)
-    subplot(1,2,i)
-    imshow(cam(i).image);
-    hold on;
-    plot(cam(i).digitizedCoordinates(:,1),cam(i).digitizedCoordinates(:,2),'r*','linestyle','none');
+        subplot(1,2,i)
+        imshow(cam(i).image);
+        hold on;
+        plot(cam(i).digitizedCoordinates(:,1),cam(i).digitizedCoordinates(:,2),'r*','linestyle','none');
+        cnt = cnt+1;
+        ah(cnt) = gca();
     end
     
 else
 	%Digitize calibration
-	%for i = 1:length(imageNames)
-	%	[cam(i).image, discard ,discard] = imread(imageNames{i});
-	%	cam(i).digitizedCoordinates = digitizeCalibration(cam(i).image,calibrationFrame);
-	%end
-	%READ digitized points from text files. Digitized the images, and created the text files with imageJ 
-	for i = 1:length(imageNames)
-		[cam(i).image, discard ,discard] = imread(imageNames{i});
-		tempCoords = dlmread(coordNames{i},"\t",1,1);
-		cam(i).digitizedCoordinates = dlmread(coordNames{i},"\t",1,1);
+    for i = 1:length(imageNames)
+		cam(i).image = imread(imageNames{i});
+        if isfield(cam(i),'digitizedCoordinates')
+            cam(i).digitizedCoordinates = digitizeCalibration(cam(i).image,calibrationFrame,cam(i).digitizedCoordinates);
+        else
+            cam(i).digitizedCoordinates = digitizeCalibration(cam(i).image,calibrationFrame);
+        end
 	end
-	save('-mat', dataSaveName, 'cam');%Save the digitization results
+	save(dataSaveName, 'cam');%Save the digitization results
+    for i = 1:length(imageNames)
+        writetable(array2table(cam(i).digitizedCoordinates,'VariableNames',{'X','Y'}),sprintf('%s_coords.csv',imageNames{i}(1:end-4)));
+    end
 end
+
+%sampleIndices = datasample(1:size(calibrationFrame,1),11); %Select random points to use for calib.
+
+sampleIndices = 1:size(calibrationFrame,1); %Use all points for calib
+
 
 %Calculate DLT-coefficients
 for i = 1:length(cam)
-	%11 coeffs
-	cam(i).coeffs11 = getDLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates);   %Use regular DLT as the initial guess for optimisation
+		%11 coeffs
+	cam(i).coeffs11 = getDLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).digitizedCoordinates(sampleIndices,:));   %Use regular DLT as the initial guess for optimisation
     %16 coeff
-	cam(i).coeffs = get16DLTcoeffs(calibrationFrame,cam(i).digitizedCoordinates,cam(i).coeffs11,getPrincipalPoint(cam(i).coeffs11));    %Optimisation for camera distortion
+	cam(i).coeffs = get16DLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).digitizedCoordinates(sampleIndices,:),cam(i).coeffs11,getPrincipalPoint(cam(i).coeffs11));    %Optimisation for camera distortion
     %Calculate error-corrected coordinates
     cam(i).deltas = getDeltas(cam(i).digitizedCoordinates,cam(i).coeffs);
     cam(i).corrected = cam(i).digitizedCoordinates-cam(i).deltas;
-    cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame,cam(i).corrected);   %Use regular DLT after distortion correction
+    cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).corrected(sampleIndices,:));   %Use regular DLT after distortion correction
     
+    %Backproject calibration object!
+    set(fh,'currentaxes',ah(i));
+    for r = 1:size(calibrationFrame,1)
+        bProjected11 = backproject(cam(i).coeffs11,calibrationFrame(r,:));
+        plot(bProjected11(1),bProjected11(2),'m+','linewidth',1);
+        bProjected = backproject16(cam(i).coeffsCorr,calibrationFrame(r,:),cam(i).coeffs);
+        bProj = backproject(cam(i).coeffsCorr,calibrationFrame(r,:));
+        deltaBProj = getDeltas(bProjected,cam(i).coeffs);
+        plot(bProjected(1),bProjected(2),'c*','linewidth',1);
+        disp(sprintf('cam %d marker %d diff x %.03f diff y %.03f',i,r, bProj(1)-(bProjected(1)-deltaBProj(1)),bProj(2)-(bProjected(2)-deltaBProj(2))));
+%         keyboard;
+    end
 end
 % keyboard;
 
@@ -117,21 +139,16 @@ end
 %Plot 3D positions of the markers and the cameras
 figure
 %Markers
-ind =1:16;
-plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'ro','linewidth',5)
+plot3(calibrationFrame(:,1),calibrationFrame(:,2),calibrationFrame(:,3),'ro','linewidth',1)
 hold on
-ind = 17:28;
-plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'b*','linewidth',5)
-ind = 29:37;
-plot3(calibrationFrame(ind,1),calibrationFrame(ind,2),calibrationFrame(ind,3),'k+','linewidth',5)
+
 
 % plot3(globalCoordinatesBasedOnDigitisation(:,1),globalCoordinatesBasedOnDigitisation(:,2),globalCoordinatesBasedOnDigitisation(:,3),'co','linewidth',5);
-plot3(global11(:,1),global11(:,2),global11(:,3),'m*','linewidth',5);
-plot3(globalCorr(:,1),globalCorr(:,2),globalCorr(:,3),'g+','linewidth',5);
+plot3(global11(:,1),global11(:,2),global11(:,3),'m*','linewidth',1);
+plot3(globalCorr(:,1),globalCorr(:,2),globalCorr(:,3),'g+','linewidth',1);
 
-disp(sprintf("Squared error dlt 11 %.2f",sum(sum((global11-calibrationFrame).^2),2)));
-disp(sprintf("Squared error dlt 16 %.2f",sum(sum((globalCorr-calibrationFrame).^2),2)));
-
+disp(sprintf("Variance dlt 11 %.2f object units",mean(sqrt(sum((global11-calibrationFrame).^2,2)))));
+disp(sprintf("Variance dlt 16 %.2f object units",mean(sqrt(sum((globalCorr-calibrationFrame).^2,2)))));
 
 
 % %Cameras

@@ -7,8 +7,10 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
     digitizedCoords = digitizedCoordinates;
     iterations = 0;
 %     keyboard;
-    opts1=  optimset('display','off');
-	coefficients = lsqnonlin(@dlt16optim,[dtl11coeffs' zeros(1,5) imSize(2) imSize(1)],[],[],opts1);
+%     opts1=  optimset('display','off', 'FunctionTolerance', 1e-12);
+	opts1=  optimoptions('lsqnonlin','display','off','FunctionTolerance', 1e-12,'StepTolerance',1e-12,'OptimalityTolerance', 1.0000e-12);
+	
+    coefficients = lsqnonlin(@dlt16optim,[dtl11coeffs' zeros(1,5) imSize(2) imSize(1)],[],[],opts1);
     disp(sprintf('Function calls %d',iterations));
 end
 
