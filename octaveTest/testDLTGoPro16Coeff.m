@@ -78,6 +78,7 @@ for i = 1:length(cam)
     rectified = undistort(cam(i).image,cam(i).coeffs);
     
     %Backproject calibration object!
+    set(0, 'CurrentFigure', fh)
     set(fh,'currentaxes',ah(i));
     for r = 1:size(calibrationFrame,1)
         bProjected11 = backproject(cam(i).coeffs11,calibrationFrame(r,:));
