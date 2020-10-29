@@ -2,6 +2,8 @@ close all;
 clear all;
 clc;
 
+addpath('functions');
+
 calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'digitizedGoPro.mat';
 %Corners of the rubic cube squares are used as the calibration object
@@ -23,7 +25,7 @@ calibrationFrame = [0,0,0;1,0,0;2,0,0;3,0,0; ... %White bottom
 					2,1,3;2,2,3;2,3,3; ... %Blue front mid
 										];
 
-imageNames = {"GOPR0093.JPG","GOPR0099.JPG"};
+imageNames = {'sampleFigs/GOPR0093.JPG','sampleFigs/GOPR0099.JPG'};
 
 ah = [];
 fh = [];

@@ -1,7 +1,0 @@
-	B = [1,0,0,0,2;0,0,3,0,0;0,0,0,0,0;0,4,0,0,0];	
-	Bb = B*B';
-	Bc = B'*B;
-	[U, discard] = eig(Bb);
-	[V, Dsq] = eig(Bc);
-	D = sqrt(Dsq);
-	PInvManual = (V*inv(D)*U')*C;

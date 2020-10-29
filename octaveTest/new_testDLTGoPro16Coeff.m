@@ -2,6 +2,8 @@ close all;
 clear all;
 clc;
 
+addpath('functions');
+
 calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'new_digitized.mat';
 %Corners of the rubic cube squares are used as the calibration object
