@@ -72,7 +72,7 @@ for i = 1:length(cam)
     cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).corrected(sampleIndices,:));   %Use regular DLT after distortion correction
     
      %Visualise camera calibration
-    rectified = undistort(cam(i).image,cam(i).coeffs);
+%     rectified = undistort(cam(i).image,cam(i).coeffs);
     %Backproject calibration object!
     set(0, 'CurrentFigure', fh)
     
