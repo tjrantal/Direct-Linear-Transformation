@@ -3,7 +3,8 @@ clear all;
 clc;
 
 addpath('functions');
-
+global eqsToUse
+eqsToUse = 13;  %Use this many equations in optimised DLT (between 12 and 16, affects lens distortion correction)
 calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'latest_digitized.mat';
 %Corners of the rubic cube squares are used as the calibration object
@@ -66,6 +67,7 @@ for i = 1:length(cam)
 	cam(i).coeffs = get16DLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).digitizedCoordinates(sampleIndices,:),cam(i).coeffs11,getPrincipalPoint(cam(i).coeffs11));    %Optimisation for camera distortion
     %Calculate error-corrected coordinates
     cam(i).deltas = getDeltas(cam(i).digitizedCoordinates,cam(i).coeffs);
+%     cam(i).corrected = cam(i).digitizedCoordinates+cam(i).deltas;
     cam(i).corrected = cam(i).digitizedCoordinates-cam(i).deltas;
     cam(i).coeffsCorr = getDLTcoeffs(calibrationFrame(sampleIndices,:),cam(i).corrected(sampleIndices,:));   %Use regular DLT after distortion correction
     
@@ -84,6 +86,7 @@ for i = 1:length(cam)
         deltaBProj = getDeltas(bProjected,cam(i).coeffs);
         plot(bProjected(1),bProjected(2),'c*','linewidth',1);
         disp(sprintf('cam %d marker %d diff x %.03f diff y %.03f',i,r, bProj(1)-(bProjected(1)-deltaBProj(1)),bProj(2)-(bProjected(2)-deltaBProj(2))));
+%         disp(sprintf('cam %d marker %d diff x %.03f diff y %.03f',i,r, bProj(1)-(bProjected(1)+deltaBProj(1)),bProj(2)-(bProjected(2)+deltaBProj(2))));
 %         keyboard;
     end
 %     keyboard;

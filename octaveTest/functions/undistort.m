@@ -1,6 +1,6 @@
 function rectified = undistort(image,coeffs)
-	xCoords = 1:5:size(image,2);
-	yCoords = 1:5:size(image,1);
+	xCoords = 1:20:size(image,2);
+	yCoords = 1:20:size(image,1);
 %     [XX,YY] = meshgrid(xCoords,yCoords);
 	rectified = uint8(zeros(size(image,1),size(image,2),size(image,3)));
     for r = yCoords
@@ -9,6 +9,7 @@ function rectified = undistort(image,coeffs)
             delta =  getDeltas(lookup,coeffs);
             try
                 lookup = lookup-delta;
+%                 lookup = lookup+delta;
                 rowrange = floor(lookup(2)):floor(lookup(2)+1);
                 colrange = floor(lookup(1)):floor(lookup(1)+1);
                 [XX,YY] = meshgrid(rowrange,colrange);
@@ -20,6 +21,7 @@ function rectified = undistort(image,coeffs)
             end
 %             disp(sprintf('r %d c %d',r,c));
         end
+        disp(sprintf('r %d c %d',r,c));
 %         keyboard;
     end
     figure
