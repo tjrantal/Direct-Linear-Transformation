@@ -4,7 +4,7 @@ clc;
 
 addpath('functions');
 global eqsToUse
-eqsToUse = 13;  %Use this many equations in optimised DLT (between 12 and 16, affects lens distortion correction)
+eqsToUse = 12;  %Use this many equations in optimised DLT (between 12 and 16, affects lens distortion correction)
 calibrationDigitized = 1; %=0 if you haven't digitized yet, =1 if you have
 dataSaveName = 'latest_digitized.mat';
 %Corners of the rubic cube squares are used as the calibration object
