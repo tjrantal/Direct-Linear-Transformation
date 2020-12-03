@@ -1,9 +1,9 @@
 function  deltas = getDeltas(digitizedCoordinates,coeffs)
-    global eqsToUse
+    global eqsToUse imCentre
     deltas = zeros(size(digitizedCoordinates,1),size(digitizedCoordinates,2));
     for r = 1:size(digitizedCoordinates,1)
-        c = digitizedCoordinates(r,1)-coeffs(end-1); %Coordinate with respect to the image centre
-        n = digitizedCoordinates(r,2)-coeffs(end); %Coordinate with respect to the image centre
+        c = digitizedCoordinates(r,1)-imCentre(end-1);%coeffs(end-1); %Coordinate with respect to the image centre
+        n = digitizedCoordinates(r,2)-imCentre(end);%coeffs(end); %Coordinate with respect to the image centre
         rad = sqrt(c*c+n*n);
 
         %16 coeff version

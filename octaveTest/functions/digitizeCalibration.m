@@ -1,15 +1,15 @@
-function [digitizedCoordinates]=digitizeCalibration(imageIn,objectCoordinates,tempCoords)
+function [digitizedCoordinates]=digitizeCalibration(imageIn,objectCoordinates,tempCoords,titles)
 	figure('position',[10,10,800,600]);
     th = title('');
 		
 	imshow(imageIn);
 	hold on;
-    if exist('tempCoords','var')
+    if exist('tempCoords','var') && ~isempty(tempCoords)
        plot(tempCoords(:,1),tempCoords(:,2),'b.','linestyle','none','markersize',5); 
     end
 	digitizedCoordinates = zeros(size(objectCoordinates,1),2);
 	for c = 1:size(objectCoordinates,1)
-		coordinateString = ['Digit X' num2str(objectCoordinates(c,1)) ' Y ' num2str(objectCoordinates(c,2)) ' Z ' num2str(objectCoordinates(c,3))];
+		coordinateString = ['Digit ' titles{c} ' X' num2str(objectCoordinates(c,1)) ' Y ' num2str(objectCoordinates(c,2)) ' Z ' num2str(objectCoordinates(c,3))];
 % 		set(th,'text',coordinateString);
         title(coordinateString);
 		disp(coordinateString);
