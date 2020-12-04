@@ -3,14 +3,19 @@ function distorted = distort(image,coeffs)
     function y = addDistortion(x)
         c = x(1)-imCentre(1);%coeffs(end-1); %Coordinate with respect to the image centre
         n = x(2)-imCentre(2);%coeffs(end); %Coordinate with respect to the image centre
+        c = c/imHeight; %Normalise coordinates to image height
+        n = n/imHeight; 
         rad = sqrt(c*c+n*n);
         deltas(1) = c*(coeffs(1)*rad^2+coeffs(2)*rad^4+coeffs(3)*rad^6)+coeffs(4)*(r^2+2*c^2)+coeffs(5)*c*n;
         deltas(2) = n*(coeffs(1)*rad^2+coeffs(2)*rad^4+coeffs(3)*rad^6)+coeffs(4)*n*c+coeffs(5)*(r^2+2*n^2);
+        deltas = deltas*imHeight;
+%         keyboard;
         y = coords-(x-deltas); 
     end
 
     opts1=  optimoptions('lsqnonlin','display','off', 'FunctionTolerance', 1e-12,'StepTolerance',1e-12,'OptimalityTolerance', 1.0000e-12);
     imCentre = [size(image,1),size(image,2)];    
+    imHeight  = size(image,1);
 	xCoords = 1:20:size(image,2);
 	yCoords = 1:20:size(image,1);
 %     [XX,YY] = meshgrid(xCoords,yCoords);
