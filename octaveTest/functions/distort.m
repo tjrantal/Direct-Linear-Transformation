@@ -18,6 +18,7 @@ function distorted = distort(image,coeffs)
 
     opts1=  optimoptions('lsqnonlin','display','off', 'FunctionTolerance', 1e-12,'StepTolerance',1e-12,'OptimalityTolerance', 1.0000e-12);
     imCentre = [size(image,1)/2,size(image,2)/2];    
+
 	xCoords = 1:20:size(image,2);
 	yCoords = 1:20:size(image,1);
 %     [XX,YY] = meshgrid(xCoords,yCoords);

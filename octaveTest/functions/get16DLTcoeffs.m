@@ -12,8 +12,10 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 	imCentre = [imSize(2) imSize(1)]./2;
 %     coefficients = lsqnonlin(@dlt16optim,[dtl11coeffs' zeros(1,eqsToUse-11) imSize(2) imSize(1)],[],[],opts1);
     initVals = [dtl11coeffs' zeros(1,eqsToUse-11)];
-    coefficients = lsqnonlin(@dlt16optim,initVals,[],[],opts1);
-    
+%     coefficients = lsqnonlin(@dlt16optim,initVals,[],[],opts1);
+
+    coefficients = lsqnonlin(@backProjectOptim,initVals,[],[],opts1);
+    keyboard;
 %     diffs = zeros(size(initVals,1),size(initVals,2));
     diffs = coefficients-initVals;
     compText = '';
