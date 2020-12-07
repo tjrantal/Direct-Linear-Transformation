@@ -11,7 +11,12 @@ function y = backProjectOptim(x,eqsToUse)
     tic
     for r = 1:size(calibObject,1)
         backProjected = backproject16(x, calibObject(r,:),x); %These are error-less backprojections
-       	distorted(r,:) = lsqnonlin(@adjustError,backProjected,[],[],opts1);
+        deltas = getDeltas(backProjected,x);
+        temp = backProjected+deltas;
+        
+       	distorted(r,:) = lsqnonlin(@adjustError,temp,[],[],opts1);
+        difference = distorted(r,:)-temp;
+%         disp(sprintf('diff adjust %.03f %.03f',difference(1),difference(2)));
     end
     toc
 %     keyboard;

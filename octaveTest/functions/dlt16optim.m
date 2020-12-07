@@ -1,11 +1,11 @@
 %@x are the 16 DLT coefficients and x0 and y0
 %Equations taken from http://kwon3d.com/theory/dlt/dlt.html
 function y = dlt16optim(x,eqsToUse)
-    global calibObject digitizedCoords iterations eqsToUse imCentre
+    global calibObject digitizedCoords iterations eqsToUse
     if ~exist('eqsToUse','var')
        eqsToUse = 16;   %Allow modifying how many coefficients to consider 
     end
-    
+    imCentre = getPrincipalPoint(x);
     %Create Matrix A (2*N x 16) to be multiplied with x' (DLT coefficients), and vector B (2*N x 1),
     A = zeros(2*size(calibObject,1),eqsToUse);
     B = zeros(2*size(calibObject,1),1);

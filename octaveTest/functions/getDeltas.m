@@ -1,5 +1,6 @@
 function  deltas = getDeltas(digitizedCoordinates,coeffs)
-    global eqsToUse imCentre
+    global eqsToUse 
+    imCentre = getPrincipalPoint(coeffs);
     deltas = zeros(size(digitizedCoordinates,1),size(digitizedCoordinates,2));
     for r = 1:size(digitizedCoordinates,1)
         c = digitizedCoordinates(r,1)-imCentre(end-1);%coeffs(end-1); %Coordinate with respect to the image centre
