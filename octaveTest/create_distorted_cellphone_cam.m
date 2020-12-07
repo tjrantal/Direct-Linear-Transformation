@@ -14,6 +14,6 @@ end
 for i = 1:length(cam)
 
      %Distort image
-     distorted = distort(cam(i).image,[0.1 0.01 0.001 0 0]);
+     distorted = distort(cam(i).image,[0.1 0.01 0.001 0 0].*0.01);
 end
 

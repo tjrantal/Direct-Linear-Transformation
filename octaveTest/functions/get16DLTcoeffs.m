@@ -9,7 +9,7 @@ function coefficients = get16DLTcoeffs(calibrationObjectGlobalCoordinates,digiti
 %     keyboard;
 %     opts1=  optimset('display','off', 'FunctionTolerance', 1e-12);
 	opts1=  optimoptions('lsqnonlin','display','off','FunctionTolerance', 1e-14,'StepTolerance',1e-14,'OptimalityTolerance', 1.0000e-14);
-	imCentre = [imSize(2) imSize(1)];
+	imCentre = [imSize(2) imSize(1)]./2;
 %     coefficients = lsqnonlin(@dlt16optim,[dtl11coeffs' zeros(1,eqsToUse-11) imSize(2) imSize(1)],[],[],opts1);
     initVals = [dtl11coeffs' zeros(1,eqsToUse-11)];
     coefficients = lsqnonlin(@dlt16optim,initVals,[],[],opts1);
