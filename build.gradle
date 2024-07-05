@@ -1,0 +1,42 @@
+plugins {
+  id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+//Enable including dependencies in the output jar
+configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
+
+
+
+sourceCompatibility = 8
+version = '0.0.1'
+mainClassName = 'timo.home.Sample3D'
+
+dependencies {
+   // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+   //implementation 'org.apache.commons:commons-math3:3.6.1'
+   //extraLibs 'org.apache.commons:commons-math3:3.6.1'
+   // GSON for reading json files
+	//implementation 'com.google.code.gson:gson:2.11.0'
+	//extraLibs 'com.google.code.gson:gson:2.11.0'
+
+}
+
+jar {
+	manifest {
+	  attributes	'Implementation-Title': name,
+		         	'Implementation-Version': version,
+		         	'Main-Class': mainClassName
+	}
+	//Include the dependency libraries in the .jar
+	//from {
+	//	configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+	//}
+	//duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
