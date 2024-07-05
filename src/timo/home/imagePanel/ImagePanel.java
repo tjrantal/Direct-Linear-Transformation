@@ -45,7 +45,7 @@ public class ImagePanel extends JPanel{
 			if (coordinates[i] != null){
 				x = (int) (coordinates[i][0]*scaleFactor);
 				y = (int) (coordinates[i][1]*scaleFactor);
-				//System.out.println("Plotting "+x+"\t"+y);
+				System.out.println("Plotting "+x+"\t"+y);
 				g2.drawOval(x-1,y-1,3,3);
 			}
 		}

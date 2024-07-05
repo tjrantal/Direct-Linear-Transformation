@@ -48,8 +48,8 @@ public class Sample3D extends JFrame{
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//Read digitized data
 		CSVReader[] cr = new CSVReader[3];
-	 	cr[0] = new CSVReader("octaveTest/GoPro0093.xls",",");
-		cr[1] = new CSVReader("octaveTest/GoPro0099.xls",",");
+	 	cr[0] = new CSVReader("octaveTest/sampleFigs/GOPR0093.txt","\t");
+		cr[1] = new CSVReader("octaveTest/sampleFigs/GOPR0099.txt","\t");
 		cr[2] = new CSVReader("octaveTest/calibrationObject.xls","\t");
 		
 		//Add images
@@ -82,15 +82,16 @@ public class Sample3D extends JFrame{
 		Matrix[][] Rt = new Matrix[2][2];
 		for (int i = 0;i<2;++i){
 			
-			//System.out.println("Cam "+i);
+			
 			double[][] digitized = getCoords(cr[i]);
 			double[][] confirm = new double[digitized.length][2];
+			System.out.println(String.format("Cam %02d length digitized %d",i,digitized.length));
 			//Scale the coordinates down by 5. My laptop couldn't handle the full image...
 			for (int r = 0;r<digitized.length;++r){
-				//System.out.print(r+"\t");
-				for (int c = 0;c<digitized[r].length;++c){
-					digitized[r][c]/=5d;
-					//System.out.print(digitized[r][c]+"\t");
+				System.out.print(r+"\t");
+				for (int c = 4;c<digitized[r].length;++c){
+					System.out.print(digitized[r][c]+"\t");
+					digitized[r][c-4] = digitized[r][c]/5d;	//The .txt files contain multiple rows -> pop the X and Y into the correct columns and scale down by five..
 				}
 				
 				//Set 50% of coordinates to null
@@ -101,7 +102,7 @@ public class Sample3D extends JFrame{
 				}else{
 					confirm[r] = null;
 				}
-				//System.out.println("");	
+				System.out.println("");	
 			}
 			
 			ArrayList<Matrix> KRt = lc.calibrate(digitized);
