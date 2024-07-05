@@ -48,7 +48,7 @@ public class LensCalibration{
 
 
 	/*
-		@param digitizedCalibrationObjectCoordinates, Nx2 matrix of digitized calibration object coordinates. insert null for missing coordinate (TO BE IMPLEMENTED)
+		@param digitizedCalibrationObjectCoordinates, Nx2 matrix of digitized calibration object coordinates. insert null for missing coordinate
 		@return KRt ArrayList<Matrix> of camera intrinsic matrix, rotation matrix, and translation vector (in matrix)
 	*/
 	public ArrayList<Matrix> calibrate(double[][] digitizedCalibrationObjectCoordinates){

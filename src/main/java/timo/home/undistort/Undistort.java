@@ -1,4 +1,4 @@
-package timo.home.undristort;
+package timo.home.undistort;
 
 import Jama.*;
 import java.awt.image.*;

@@ -32,7 +32,7 @@ import timo.home.imagePanel.*;
 import timo.home.utils.*;
 import timo.home.calibration.*;
 import timo.home.refine.*;
-import timo.home.undristort.*;
+import timo.home.undistort.*;
 
 import java.util.*;
 import java.awt.*;
@@ -88,9 +88,9 @@ public class Sample3D extends JFrame{
 			System.out.println(String.format("Cam %02d length digitized %d",i,digitized.length));
 			//Scale the coordinates down by 5. My laptop couldn't handle the full image...
 			for (int r = 0;r<digitized.length;++r){
-				System.out.print(r+"\t");
+				//System.out.print(r+"\t");
 				for (int c = 4;c<digitized[r].length;++c){
-					System.out.print(digitized[r][c]+"\t");
+					//System.out.print(digitized[r][c]+"\t");
 					digitized[r][c-4] = digitized[r][c]/5d;	//The .txt files contain multiple rows -> pop the X and Y into the correct columns and scale down by five..
 				}
 				
@@ -102,12 +102,12 @@ public class Sample3D extends JFrame{
 				}else{
 					confirm[r] = null;
 				}
-				System.out.println("");	
+				//System.out.println("");	
 			}
 			
 			ArrayList<Matrix> KRt = lc.calibrate(digitized);
 			
-			if(false){
+			if(true){
 				System.out.println("K");
 				KRt.get(0).print(3,3);
 				System.out.println("R");
@@ -123,7 +123,7 @@ public class Sample3D extends JFrame{
 			Rt[i][0]=KdRt.get(2);
 			Rt[i][1]=KdRt.get(3);
 			
-			if(false){
+			if(true){
 				System.out.println("refined K");
 				KdRt.get(0).print(3,3);
 				System.out.println("d");
