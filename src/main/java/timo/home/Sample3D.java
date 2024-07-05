@@ -153,6 +153,16 @@ public class Sample3D extends JFrame{
 			
 		}
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
+		Vector<Matrix> dltCoeffs= dlt3d.getCurrentDltCoefficients();
+		for (int c = 0; c<dltCoeffs.size();++c){
+			System.out.println(String.format("Matrix %d",c));
+			double[] coeffs = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[c]);
+			for (int i = 0; i<coeffs.length;++i){
+				System.out.println(String.format("\t%.2f\t%.2f",dltCoeffs.get(c).get(i,0),coeffs[i]));
+
+			}
+		}
+
 		//Get 3D coords, and project to undistorted coords. UnknownPoints need to be undistorted as well
 		double[][] unknownUndistorted3D = new double[undistortedUnknown[0].length][3];
 		Matrix tempC;
