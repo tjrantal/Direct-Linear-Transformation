@@ -56,10 +56,10 @@ public class Sample3D extends JFrame{
 		JComponent cp = new JPanel();
 		ImagePanel[] ip = new ImagePanel[4];
 		//Scale images down to 1/5th. My laptop couldn't handle the full image...
-		ImagePanel tempI = loadImage("octaveTest/GOPR0093.JPG");
+		ImagePanel tempI = loadImage("octaveTest/sampleFigs/GOPR0093.JPG");
 		ip[0] = new ImagePanel(tempI.scaleImage(tempI.getOrig(),0.2));
 		ip[0].setOpaque(true);
-		tempI = loadImage("octaveTest/GOPR0099.JPG");
+		tempI = loadImage("octaveTest/sampleFigs/GOPR0099.JPG");
 		ip[1] = new ImagePanel(tempI.scaleImage(tempI.getOrig(),0.2));
 		ip[1].setOpaque(true);
 		
