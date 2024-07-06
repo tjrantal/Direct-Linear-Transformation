@@ -154,11 +154,12 @@ public class Sample3D extends JFrame{
 		}
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
 		Vector<Matrix> dltCoeffs= dlt3d.getCurrentDltCoefficients();
+		double[][] apacheCoeffs = new double[dltCoeffs.size()][];
 		for (int c = 0; c<dltCoeffs.size();++c){
-			System.out.println(String.format("Matrix %d",c));
-			double[] coeffs = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[c]);
-			for (int i = 0; i<coeffs.length;++i){
-				System.out.println(String.format("\t%.2f\t%.2f",dltCoeffs.get(c).get(i,0),coeffs[i]));
+			System.out.println(String.format("Cam %d\tJama\tGradle",c));
+			apacheCoeffs[c] = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[c]);
+			for (int i = 0; i<apacheCoeffs[c].length;++i){
+				System.out.println(String.format("coeff%02d\t%.2f\t%.2f",c,dltCoeffs.get(c).get(i,0),apacheCoeffs[c][i]));
 
 			}
 		}
@@ -170,7 +171,9 @@ public class Sample3D extends JFrame{
 			if (undistortedUnknown[0][i] != null){
 				tempC = dlt3d.scaleCoordinates(new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
 				unknownUndistorted3D[i] = new double[]{tempC.get(0,0),tempC.get(1,0),tempC.get(2,0)};
-				//System.out.println("Marker "+i+" x "+tempC.get(0,0)+" y "+tempC.get(1,0)+" z "+tempC.get(2,0));
+				double[] apache3D = DLT3D_apache_math3.scaleCoordinates(apacheCoeffs,new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
+				System.out.println(String.format("Jama %d x %.1f y %.1f z %.1f",i,tempC.get(0,0),tempC.get(1,0),tempC.get(2,0)));
+				System.out.println(String.format("Apache %d x %.1f y %.1f z %.1f",i,apache3D[0],apache3D[1],apache3D[2]));
 			}else{
 				unknownUndistorted3D[i] = null;
 			}

@@ -7,6 +7,9 @@ The folder octaveTest contains an octave script testDaesik, which combines Tsai'
 
 I'm satisfied with Tsai's camera calibration, and intend to implement that in java. More sophisticated camera calibration is available e.g. in the OpenCV library (opencv.org), but the implementation is in C++ instead of Java.
 
+Added gradle build script. Testing in linux (in the folder of this file [update 0.0.2 to correspond to build.gradle version...]):
+gradle jar && java -jar build/libs/Direct-Linear-Transformation-0.0.2.jar
+
 NEXT TODO
 Test Newton's method to get undistorted points from distorted (points digitized on the original image) coordinates. This would be needed in order to not to have to use the interpolated undistorted image for analysis.
 

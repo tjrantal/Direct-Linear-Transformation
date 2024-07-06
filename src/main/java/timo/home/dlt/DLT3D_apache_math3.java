@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.geometry.Vector;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
@@ -102,7 +103,7 @@ public class DLT3D_apache_math3{
 		}
 		
 		for (int i = 0;i<coefficients.length;++i){
-			L1[2*i][0]	=coefficients[i][3]*coordinates[i][0]-coefficients[i][0];
+			L1[2*i][0]	=coefficients[i][8]*coordinates[i][0]-coefficients[i][0];
 			L1[2*i][1]	=coefficients[i][9]*coordinates[i][0]-coefficients[i][1];
 			L1[2*i][2]	=coefficients[i][10]*coordinates[i][0]-coefficients[i][2];
 			L1[2*i+1][0]	=coefficients[i][8]*coordinates[i][1]-coefficients[i][4];
@@ -111,8 +112,6 @@ public class DLT3D_apache_math3{
 		}
 		return (solveVectorUsingSVD(MatrixUtils.createRealMatrix(L1), MatrixUtils.createRealVector(L2))).toArray();
 	}
-	
-
 
 	public static RealVector solveVectorUsingSVD(RealMatrix A, RealVector y) {
         // Perform Singular Value Decomposition (SVD)
