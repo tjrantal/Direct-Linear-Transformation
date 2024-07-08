@@ -108,7 +108,7 @@ public class Sample3D extends JFrame{
 			
 			ArrayList<Matrix> KRt = lc.calibrate(digitized);
 			
-			if(true){
+			if(false){
 				System.out.println("K");
 				KRt.get(0).print(3,3);
 				System.out.println("R");
@@ -124,7 +124,7 @@ public class Sample3D extends JFrame{
 			Rt[i][0]=KdRt.get(2);
 			Rt[i][1]=KdRt.get(3);
 			
-			if(true){
+			if(false){
 				System.out.println("refined K");
 				KdRt.get(0).print(3,3);
 				System.out.println("d");
@@ -143,6 +143,17 @@ public class Sample3D extends JFrame{
 			ip[i+2].plotCoordinates(undistortedCoord[i]);
 			undistortedUnknown[i] = ud[i].undistortCoordinates(confirm);
 			apacheCoeffs[i] = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[i]);	//Compute Apache DLT
+
+
+			System.out.println("t");
+			KdRt.get(3).print(3,3);
+			System.out.println("");
+			double[] camPos = DLT3D_apache_math3.getCameraPosition(apacheCoeffs[i]);
+			for (double a:camPos){
+				System.out.println(String.format("%.03f",a));
+			}
+
+
 			double[][] projectedPoints =  ud[i].projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3));
 			double[][] apacheProjectedPoints = new double[calibrationObject.length][];
 			int cnt = 0;

@@ -120,6 +120,14 @@ public class DLT3D_apache_math3{
 		return new double[]{u,v};
 	}
 
+	//Get camera position from DLT coefficients
+	public static double[] getCameraPosition(double[] coefficients){
+		double[][] A = new double[][] {{coefficients[0], coefficients[1], coefficients[2]},{coefficients[4], coefficients[5], coefficients[6]} ,{
+		coefficients[8], coefficients[9], coefficients[10]}};
+		double[] B = new double[] {-coefficients[3], -coefficients[7], -1};
+		return solveVectorUsingSVD(MatrixUtils.createRealMatrix(A), MatrixUtils.createRealVector(B)).toArray();
+	}
+
 	public static RealVector solveVectorUsingSVD(RealMatrix A, RealVector y) {
         // Perform Singular Value Decomposition (SVD)
         SingularValueDecomposition svd = new SingularValueDecomposition(A);
