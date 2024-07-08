@@ -146,7 +146,8 @@ public class Sample3D extends JFrame{
 
 
 			System.out.println("t");
-			KdRt.get(3).print(3,3);
+			KRt.get(2).print(3,3);
+			KdRt.get(3).print(3,3);			
 			System.out.println("");
 			double[] camPos = DLT3D_apache_math3.getCameraPosition(apacheCoeffs[i]);
 			for (double a:camPos){
