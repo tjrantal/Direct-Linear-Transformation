@@ -113,6 +113,13 @@ public class DLT3D_apache_math3{
 		return (solveVectorUsingSVD(MatrixUtils.createRealMatrix(L1), MatrixUtils.createRealVector(L2))).toArray();
 	}
 
+	//Project known 3D coordinates into the camera view
+	public static double[] project3D(double[] coefficients, double[] globalCoordinates){
+		double u = (coefficients[0]*globalCoordinates[0]+coefficients[1]*globalCoordinates[1]+coefficients[2]*globalCoordinates[2]+coefficients[3])/(coefficients[8]*globalCoordinates[0]+coefficients[9]*globalCoordinates[1]+coefficients[10]*globalCoordinates[2]+1);
+		double v = (coefficients[4]*globalCoordinates[0]+coefficients[5]*globalCoordinates[1]+coefficients[6]*globalCoordinates[2]+coefficients[7])/(coefficients[8]*globalCoordinates[0]+coefficients[9]*globalCoordinates[1]+coefficients[10]*globalCoordinates[2]+1);
+		return new double[]{u,v};
+	}
+
 	public static RealVector solveVectorUsingSVD(RealMatrix A, RealVector y) {
         // Perform Singular Value Decomposition (SVD)
         SingularValueDecomposition svd = new SingularValueDecomposition(A);

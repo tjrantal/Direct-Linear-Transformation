@@ -80,6 +80,7 @@ public class Sample3D extends JFrame{
 		double[][][] undistortedUnknown = new double[2][][];
 		Undistort[] ud = new Undistort[2];
 		Matrix[][] Rt = new Matrix[2][2];
+		double[][] apacheCoeffs = new double[2][];
 		for (int i = 0;i<2;++i){
 			
 			
@@ -141,7 +142,19 @@ public class Sample3D extends JFrame{
 			undistortedCoord[i] = ud[i].undistortCoordinates(digitized);
 			ip[i+2].plotCoordinates(undistortedCoord[i]);
 			undistortedUnknown[i] = ud[i].undistortCoordinates(confirm);
-			ip[i+2].plotCoordinates(ud[i].projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3)), new Color(0,255,0));
+			apacheCoeffs[i] = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[i]);	//Compute Apache DLT
+			double[][] projectedPoints =  ud[i].projectKnownPoints(calibrationObject, KdRt.get(2), KdRt.get(3));
+			double[][] apacheProjectedPoints = new double[calibrationObject.length][];
+			int cnt = 0;
+			System.out.println("Projected object "+i);
+			for (double[] point:calibrationObject){
+				apacheProjectedPoints[cnt] = DLT3D_apache_math3.project3D(apacheCoeffs[i], point);
+				System.out.println(String.format("p%02d\t%.2f\t%.2f\t%.2f\t%.2f",cnt,projectedPoints[cnt][0],projectedPoints[cnt][1],apacheProjectedPoints[cnt][0],apacheProjectedPoints[cnt][1]));
+				++cnt;
+			}
+
+			ip[i+2].plotCoordinates(projectedPoints, new Color(0,255,0));
+			ip[i+2].plotCoordinates(apacheProjectedPoints, new Color(255,0,255));
 			
 			//ip[i+2].paintImageToDraw();
 			//ip[i+2].setOpaque(true);
@@ -154,10 +167,10 @@ public class Sample3D extends JFrame{
 		}
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
 		Vector<Matrix> dltCoeffs= dlt3d.getCurrentDltCoefficients();
-		double[][] apacheCoeffs = new double[dltCoeffs.size()][];
+		
 		for (int c = 0; c<dltCoeffs.size();++c){
 			System.out.println(String.format("Cam %d\tJama\tGradle",c));
-			apacheCoeffs[c] = DLT3D_apache_math3.getDltCoefficients(calibrationObject,undistortedCoord[c]);
+			
 			for (int i = 0; i<apacheCoeffs[c].length;++i){
 				System.out.println(String.format("coeff%02d\t%.2f\t%.2f",c,dltCoeffs.get(c).get(i,0),apacheCoeffs[c][i]));
 
