@@ -10,6 +10,11 @@ I'm satisfied with Tsai's camera calibration, and intend to implement that in ja
 Added gradle build script. Testing in linux (in the folder of this file [update 0.0.2 to correspond to build.gradle version...]):
 gradle jar && java -jar build/libs/Direct-Linear-Transformation-0.0.2.jar
 
+ONGOING TESTING:
+JOCL to leverage the GPU in solving 3D coordinates based on multiple camera view coordinates. This reduces to requiring a 3x3 matrix inverse, which can be solved with adjugate and determinant
+    http://www.jocl.org/
+    https://en.wikipedia.org/wiki/Adjugate_matrix
+
 NEXT TODO
 Test Newton's method to get undistorted points from distorted (points digitized on the original image) coordinates. This would be needed in order to not to have to use the interpolated undistorted image for analysis.
 
@@ -18,3 +23,4 @@ In short, 3D motion capture with DLT comprises two steps:
 2) Digitizing unknown point(s) within the calibrated plane (or volume in 3D analysis, points from a minimum of two cameras) and applying the DLT to obtain the global coordinates.
 
 Typically camera calibration is also included to improve accuracy (e.g. Tsai's camera calibration). The DLT is then calculated on the calibrated undistorted coordinates.
+

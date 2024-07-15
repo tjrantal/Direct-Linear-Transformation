@@ -212,6 +212,8 @@ public class Sample3D extends JFrame{
 		pack();
 		setSize(new Dimension(680,550));
 	   setVisible(true);
+
+	   JOCL_views_to_3D.testJOCL();
 	}
 
 	private double[][] getCoords(CSVReader cr){

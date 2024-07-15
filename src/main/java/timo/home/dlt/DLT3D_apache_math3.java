@@ -15,23 +15,20 @@
 	N.B.  the above text was copied from http://www.gnu.org/licenses/gpl.html
 	unmodified. I have not attached a copy of the GNU license to the source...
 
-    Copyright (C) 2012 Timo Rantalainen
+    Copyright (C) 2012-2024 Timo Rantalainen
 */
 /*
 	3D DLT (direct linear transformation).
-	Depends on Jama library http://math.nist.gov/javanumerics/jama/
+	Depends on Apache math https://commons.apache.org/proper/commons-math/
 	Written by Timo Rantalainen tjrantal@gmail.com
 */
 
 package timo.home.dlt;
-import Jama.*;
-import java.util.ArrayList;
+
 //Apache Math
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.geometry.Vector;
-import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 
