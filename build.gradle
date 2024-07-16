@@ -31,6 +31,9 @@ dependencies {
 }
 
 jar {
+	from {
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 	manifest {
 	  attributes	'Implementation-Title': name,
 		         	'Implementation-Version': version,
@@ -41,4 +44,7 @@ jar {
 		configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from('src/main/resources') {
+        into('resources')
+    }
 }

@@ -6,11 +6,18 @@ import java.util.Arrays;
 
 import org.jocl.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 public class JOCL_views_to_3D {
     
     /**
      * The source code of the OpenCL program to execute
      */
+    /*
     private static String programSource =
         "__kernel void "+
         "sampleKernel(__global const float *a,"+
@@ -20,9 +27,17 @@ public class JOCL_views_to_3D {
         "    int gid = get_global_id(0);"+
         "    c[gid] = a[gid] * b[gid];"+
         "}";
-
+    */
     public static void testJOCL(){
-    
+        String programSource = "";
+        try{
+            programSource = readKernelFile("kernels/views_to_3d.cl");
+            System.out.println(programSource);
+        }catch(Exception e){
+            System.out.println("Spat the dummy");
+            return;
+        }
+
         // Create input- and output data 
         int n = 10;
         float srcArrayA[] = new float[n];
@@ -145,6 +160,21 @@ public class JOCL_views_to_3D {
         if (n <= 10)
         {
             System.out.println("Result: "+Arrays.toString(dstArray));
+        }
+    }
+
+    public static String readKernelFile(String path) throws IOException {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream(path);
+             InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+             BufferedReader reader = new BufferedReader(streamReader)) {
+
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+            return stringBuilder.toString();
         }
     }
 }
