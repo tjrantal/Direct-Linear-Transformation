@@ -13,21 +13,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class JOCL_views_to_3D {
-    
-    /**
-     * The source code of the OpenCL program to execute
-     */
-    /*
-    private static String programSource =
-        "__kernel void "+
-        "sampleKernel(__global const float *a,"+
-        "             __global const float *b,"+
-        "             __global float *c)"+
-        "{"+
-        "    int gid = get_global_id(0);"+
-        "    c[gid] = a[gid] * b[gid];"+
-        "}";
-    */
+
     public static void testJOCL(){
         String programSource = "";
         try{
@@ -39,11 +25,11 @@ public class JOCL_views_to_3D {
         }
 
         // Create input- and output data 
-        int n = 10;
-        float srcArrayA[] = new float[n];
-        float srcArrayB[] = new float[n];
-        float dstArray[] = new float[n];
-        for (int i=0; i<n; i++)
+        int n = 3;
+        float srcArrayA[] = new float[n*n];
+        float srcArrayB[] = new float[n*n];
+        float dstArray[] = new float[n*n];
+        for (int i=0; i<n*n; i++)
         {
             srcArrayA[i] = i;
             srcArrayB[i] = i;
@@ -98,13 +84,13 @@ public class JOCL_views_to_3D {
         // Allocate the memory objects for the input- and output data
         cl_mem srcMemA = clCreateBuffer(context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            Sizeof.cl_float * n, srcA, null);
+            Sizeof.cl_float * n*n, srcA, null);
         cl_mem srcMemB = clCreateBuffer(context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            Sizeof.cl_float * n, srcB, null);
+            Sizeof.cl_float * n*n, srcB, null);
         cl_mem dstMem = clCreateBuffer(context, 
             CL_MEM_READ_WRITE, 
-            Sizeof.cl_float * n, null, null);
+            Sizeof.cl_float * n*n, null, null);
         
         // Create the program from the source code
         cl_program program = clCreateProgramWithSource(context,
@@ -114,24 +100,25 @@ public class JOCL_views_to_3D {
         clBuildProgram(program, 0, null, null, null, null);
         
         // Create the kernel
-        cl_kernel kernel = clCreateKernel(program, "sampleKernel", null);
+        cl_kernel kernel = clCreateKernel(program, "mat_mul", null);
         
-        // Set the arguments for the kernel
+        // Set the arguments for the kernel. Use pointers to convey the required arguments
         int a = 0;
+        clSetKernelArg(kernel, a++, Sizeof.cl_int, Pointer.to(new int[]{n}));
         clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcMemA));
         clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcMemB));
         clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(dstMem));
         
         // Set the work-item dimensions
-        long global_work_size[] = new long[]{n};
+        long global_work_size[] = new long[]{n,n};
         
         // Execute the kernel
-        clEnqueueNDRangeKernel(commandQueue, kernel, 1, null,
+        clEnqueueNDRangeKernel(commandQueue, kernel, global_work_size.length, null,
             global_work_size, null, 0, null, null);
         
         // Read the output data
         clEnqueueReadBuffer(commandQueue, dstMem, CL_TRUE, 0,
-            n * Sizeof.cl_float, dst, 0, null, null);
+            n*n*Sizeof.cl_float, dst, 0, null, null);
         
         // Release kernel, program, and memory objects
         clReleaseMemObject(srcMemA);
@@ -143,12 +130,13 @@ public class JOCL_views_to_3D {
         clReleaseContext(context);
         
         // Verify the result
+        float[] check = mat_mul(n,srcArrayA,srcArrayB);
         boolean passed = true;
         final float epsilon = 1e-7f;
-        for (int i=0; i<n; i++)
+        for (int i=0; i<srcArrayA.length; i++)
         {
             float x = dstArray[i];
-            float y = srcArrayA[i] * srcArrayB[i];
+            float y = check[i];
             boolean epsilonEqual = Math.abs(x - y) <= epsilon * Math.abs(x);
             if (!epsilonEqual)
             {
@@ -157,10 +145,26 @@ public class JOCL_views_to_3D {
             }
         }
         System.out.println("Test "+(passed?"PASSED":"FAILED"));
-        if (n <= 10)
+        if (n <= srcArrayA.length)
         {
-            System.out.println("Result: "+Arrays.toString(dstArray));
+            System.out.println("GPU: "+Arrays.toString(dstArray));
+            System.out.println("CPU: "+Arrays.toString(check));
         }
+    }
+
+    private static float[] mat_mul(int N,float[] a, float[] b){
+        float[] c = new float[a.length];
+        int i, j, k;
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
+                c[i*N+j] = 0.0f;
+                for (k = 0; k < N; k++) {
+                    // C(i, j) = sum(over k) A(i,k) * B(k,j)
+                    c[i*N+j] += a[i*N+k] * b[k*N+j];
+                }
+            }
+        }
+        return c;
     }
 
     public static String readKernelFile(String path) throws IOException {
