@@ -1,3 +1,5 @@
+#define maxMatrixRows 2*36 //camNo*2 needed at minimum;
+
 __kernel void mat_mul(const int N, __global float *A,
 __global float *B, __global float *C){
     int i = get_global_id(0);
@@ -12,45 +14,6 @@ __global float *B, __global float *C){
 }
 
 /*
-    Kernel to run through all points and camera pairs. Gid goes through each point.
-    Can feed in 0 for missing data as long as at least 2 camera views have valid data
-    camNo = number of camera views
-    points = number of points to consider
-    coordinates = pointer to camera coordinate values. interleaved cam0 x, cam0 y, cam1 x, cam1 y etc
-*/
-__kernel void views_to_global(const int camNo,const int points, __global const float* coordinates, __global const float* coefficients, __global float* reco){
-    int i,pointStride,camStride,recoStride;
-    int gid = get_global_id(0); //Get index of execution
-    int matrixRows = camNo*2;
-    float* L1 = float[3*matrixRows];    //A into the pseudo_inverse
-    float* L2 = float[matrixRows];  //y into the pseudo_inverse
-    float* x = float[3];    //Return the reconstructed coordinates
-    //Prep matrices for solving Ax = y
-    for (i =0;i<camNo;++i){
-        camStride = i*camNo;
-        L2[2*i] = coefficients[camStride+3]- coordinates[camStride+0];
-        L2[2*i+1] = coefficients[camStride+7]- coordinates[camStride+1];
-    }
-    
-    pointStride = 2*points*gid;
-    for (int i = 0;i<camNo;++i){
-        camStride = i*camNo;
-        L1[2*i][0]	=coefficients[camStride+8]*coordinates[pointStride+camStride+0]-coefficients[camStride+0];
-        L1[2*i][1]	=coefficients[camStride+9]*coordinates[pointStride+camStride+0]-coefficients[camStride+1];
-        L1[2*i][2]	=coefficients[camStride+10]*coordinates[pointStride+camStride+0]-coefficients[camStride+2];
-        L1[2*i+1][0]	=coefficients[camStride+8]*coordinates[pointStride+camStride+1]-coefficients[camStride+4];
-        L1[2*i+1][1]	=coefficients[camStride+9]*coordinates[pointStride+camStride+1]-coefficients[camStride+5];
-        L1[2*i+1][2]	=coefficients[camStride+10]*coordinates[pointStride+camStride+1]-coefficients[camStride+6];
-    }
-    
-    pseudo_inverse(matrixRows,L2,y,x);   //Solve the group of equations
-    recoStride = gid*3;
-    for (i =  0;i<3;++i){
-        reco[recoStride+i]=x[i]; //set the return values
-    }
-}
-
-/*
     Solve group of equations using pseudo inverse
     matrixRows = rows in matrix A (and vector y)
     A = matrix A (matrixRows x width)
@@ -61,7 +24,7 @@ void pseudo_inverse(int matrixRows, float* A, float* y, float* x) {
     int i, j, k;
 
     // Step 1: Compute A^T (transpose of A)
-    float AT[3][matrixRows];
+    float AT[3][maxMatrixRows];
     for (i = 0; i < matrixRows; ++i) {
         for (j = 0; j < 3; ++j) {
             AT[j][i] = A[i * 3 + j];
@@ -132,5 +95,43 @@ void pseudo_inverse(int matrixRows, float* A, float* y, float* x) {
         for (j = 0; j < 3; ++j) {
             x[i] += ATA[i][j] * ATy[j];
         }
+    }
+}
+
+/*
+    Kernel to run through all points and camera pairs. Gid goes through each point.
+    Can feed in 0 for missing data as long as at least 2 camera views have valid data
+    camNo = number of camera views
+    points = number of points to consider
+    coordinates = pointer to camera coordinate values. interleaved cam0 x, cam0 y, cam1 x, cam1 y etc
+*/
+__kernel void views_to_global(const int camNo,const int points, __global const float* coordinates, __global const float* coefficients, __global float* reco){
+    int i,pointStride,camStride,recoStride;
+    int gid = get_global_id(0); //Get index of execution
+    float L1[3*maxMatrixRows]  = {0};    //A into the pseudo_inverse
+    float L2[maxMatrixRows]  = {0};  //y into the pseudo_inverse
+    float x[3] = {0};    //Return the reconstructed coordinates
+    //Prep matrices for solving Ax = y
+    for (i =0;i<camNo;++i){
+        camStride = i*camNo;
+        L2[2*i] = coefficients[camStride+3]- coordinates[camStride+0];
+        L2[2*i+1] = coefficients[camStride+7]- coordinates[camStride+1];
+    }
+    
+    pointStride = 2*points*gid;
+    for (int i = 0;i<camNo;++i){
+        camStride = i*camNo;
+        L1[2*3*camStride+0]	=coefficients[camStride+8]*coordinates[pointStride+camStride+0]-coefficients[camStride+0];
+        L1[2*3*camStride+1]	=coefficients[camStride+9]*coordinates[pointStride+camStride+0]-coefficients[camStride+1];
+        L1[2*3*camStride+2]	=coefficients[camStride+10]*coordinates[pointStride+camStride+0]-coefficients[camStride+2];
+        L1[2*3*camStride+3]	=coefficients[camStride+8]*coordinates[pointStride+camStride+1]-coefficients[camStride+4];
+        L1[2*3*camStride+4]	=coefficients[camStride+9]*coordinates[pointStride+camStride+1]-coefficients[camStride+5];
+        L1[2*3*camStride+5]	=coefficients[camStride+10]*coordinates[pointStride+camStride+1]-coefficients[camStride+6];
+    }
+    
+    pseudo_inverse(camNo*2,L2,L1,x);   //Solve the group of equations
+    recoStride = gid*3;
+    for (i =  0;i<3;++i){
+        reco[recoStride+i]=x[i]; //set the return values
     }
 }
