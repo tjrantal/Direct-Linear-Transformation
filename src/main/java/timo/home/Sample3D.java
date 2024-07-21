@@ -180,18 +180,26 @@ public class Sample3D extends JFrame{
 		DLT3D dlt3d = new DLT3D(calibrationObject,undistortedCoord);
 		Vector<Matrix> dltCoeffs= dlt3d.getCurrentDltCoefficients();
 		
+		float[] dltCoeffsToJOCL = new float[dltCoeffs.size()*11];	//number_of_cams x 11 coefficients
 		for (int c = 0; c<dltCoeffs.size();++c){
 			System.out.println(String.format("Cam %d\tJama\tGradle",c));
 			
 			for (int i = 0; i<apacheCoeffs[c].length;++i){
 				System.out.println(String.format("coeff%02d\t%.2f\t%.2f",c,dltCoeffs.get(c).get(i,0),apacheCoeffs[c][i]));
-
+				dltCoeffsToJOCL[c*11+i] = (float) apacheCoeffs[c][i];
 			}
 		}
 
 		//Get 3D coords, and project to undistorted coords. UnknownPoints need to be undistorted as well
 		double[][] unknownUndistorted3D = new double[undistortedUnknown[0].length][3];
 		Matrix tempC;
+		float[] camCoordinatesToJOCL = new float[dltCoeffs.size()*undistortedUnknown[0].length*2]; //number_of_digitised_points x camNo x 2 coordinates
+		for (int i = 0;i<unknownUndistorted3D.length;++i){	//Digitised points
+			for (int c = 0;c<dltCoeffs.size();++c){//Camera views
+				camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+0] = (float) undistortedUnknown[c][i][0];
+				camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+1] = (float) undistortedUnknown[c][i][1];
+			}
+		}
 		for (int i =0;i<unknownUndistorted3D.length;++i){
 			if (undistortedUnknown[0][i] != null){
 				tempC = dlt3d.scaleCoordinates(new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
