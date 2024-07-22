@@ -196,10 +196,18 @@ public class Sample3D extends JFrame{
 		float[] camCoordinatesToJOCL = new float[dltCoeffs.size()*undistortedUnknown[0].length*2]; //number_of_digitised_points x camNo x 2 coordinates
 		for (int i = 0;i<unknownUndistorted3D.length;++i){	//Digitised points
 			for (int c = 0;c<dltCoeffs.size();++c){//Camera views
-				camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+0] = (float) undistortedUnknown[c][i][0];
-				camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+1] = (float) undistortedUnknown[c][i][1];
+				if (undistortedUnknown[c][i] != null){
+					camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+0] = (float) undistortedUnknown[c][i][0];
+					camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+1] = (float) undistortedUnknown[c][i][1];
+				}else{
+					camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+0] = 0f;
+					camCoordinatesToJOCL[i*2*dltCoeffs.size()+2*c+1] = 0f;
+				}
 			}
 		}
+		//Run 2D to 3D with JOCL
+		float[] jocl3d = JOCL_views_to_3D.testJOCL(2,undistortedUnknown[0].length,camCoordinatesToJOCL,dltCoeffsToJOCL);
+		
 		for (int i =0;i<unknownUndistorted3D.length;++i){
 			if (undistortedUnknown[0][i] != null){
 				tempC = dlt3d.scaleCoordinates(new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
@@ -221,7 +229,7 @@ public class Sample3D extends JFrame{
 		setSize(new Dimension(680,550));
 	   setVisible(true);
 
-	   JOCL_views_to_3D.testJOCL();
+	   
 	}
 
 	private double[][] getCoords(CSVReader cr){

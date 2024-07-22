@@ -14,34 +14,27 @@ import java.nio.charset.StandardCharsets;
 
 public class JOCL_views_to_3D {
 
-    public static void testJOCL(){
+    //views_to_global(const int camNo,const int points, __global const float* coordinates, __global const float* coefficients, __global float* reco)
+    public static float[] testJOCL(int camNo, int points, float[] coordinates, float[] coefficients){
         String programSource = "";
+        float[] reco = new float[points*3]; //return array
         try{
             programSource = readKernelFile("kernels/views_to_3d.cl");
-            System.out.println(programSource);
+            //System.out.println(programSource);
         }catch(Exception e){
             System.out.println("Spat the dummy");
-            return;
+            return null;
         }
 
-        // Create input- and output data 
-        int n = 3;
-        float srcArrayA[] = new float[n*n];
-        float srcArrayB[] = new float[n*n];
-        float dstArray[] = new float[n*n];
-        for (int i=0; i<n*n; i++)
-        {
-            srcArrayA[i] = i;
-            srcArrayB[i] = i;
-        }
-        Pointer srcA = Pointer.to(srcArrayA);
-        Pointer srcB = Pointer.to(srcArrayB);
-        Pointer dst = Pointer.to(dstArray);
+
+        Pointer pcoordinates = Pointer.to(coordinates);
+        Pointer pcoefficients = Pointer.to(coefficients);
+        Pointer preco = Pointer.to(reco);
 
         // The platform, device type and device number
         // that will be used
         final int platformIndex = 0;
-        final long deviceType = CL_DEVICE_TYPE_ALL;
+        final long deviceType = CL_DEVICE_TYPE_GPU;
         final int deviceIndex = 0;
 
         // Enable exceptions and subsequently omit error checks in this sample
@@ -82,15 +75,15 @@ public class JOCL_views_to_3D {
             context, device, properties, null);
 
         // Allocate the memory objects for the input- and output data
-        cl_mem srcMemA = clCreateBuffer(context, 
+        cl_mem srcCoordinates = clCreateBuffer(context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            Sizeof.cl_float * n*n, srcA, null);
-        cl_mem srcMemB = clCreateBuffer(context, 
+            Sizeof.cl_float * coordinates.length, pcoordinates, null);
+        cl_mem srcCoefficients = clCreateBuffer(context, 
             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-            Sizeof.cl_float * n*n, srcB, null);
-        cl_mem dstMem = clCreateBuffer(context, 
+            Sizeof.cl_float * coefficients.length, pcoefficients, null);
+        cl_mem dstReco = clCreateBuffer(context, 
             CL_MEM_READ_WRITE, 
-            Sizeof.cl_float * n*n, null, null);
+            Sizeof.cl_float * reco.length, null, null);
         
         // Create the program from the source code
         cl_program program = clCreateProgramWithSource(context,
@@ -100,56 +93,60 @@ public class JOCL_views_to_3D {
         clBuildProgram(program, 0, null, null, null, null);
         
         // Create the kernel
-        cl_kernel kernel = clCreateKernel(program, "mat_mul", null);
+        cl_kernel kernel = clCreateKernel(program, "views_to_global", null);
         
         // Set the arguments for the kernel. Use pointers to convey the required arguments
         int a = 0;
-        clSetKernelArg(kernel, a++, Sizeof.cl_int, Pointer.to(new int[]{n}));
-        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcMemA));
-        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcMemB));
-        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(dstMem));
+        clSetKernelArg(kernel, a++, Sizeof.cl_int, Pointer.to(new int[]{camNo}));
+        clSetKernelArg(kernel, a++, Sizeof.cl_int, Pointer.to(new int[]{points}));
+        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcCoordinates));
+        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(srcCoefficients));
+        clSetKernelArg(kernel, a++, Sizeof.cl_mem, Pointer.to(dstReco));
         
         // Set the work-item dimensions
-        long global_work_size[] = new long[]{n,n};
+        long global_work_size[] = new long[]{points};
         
         // Execute the kernel
         clEnqueueNDRangeKernel(commandQueue, kernel, global_work_size.length, null,
             global_work_size, null, 0, null, null);
         
-        // Read the output data
-        clEnqueueReadBuffer(commandQueue, dstMem, CL_TRUE, 0,
-            n*n*Sizeof.cl_float, dst, 0, null, null);
+        // Read the output data into reco
+        clEnqueueReadBuffer(commandQueue, dstReco, CL_TRUE, 0,
+            reco.length*Sizeof.cl_float, preco, 0, null, null);
         
         // Release kernel, program, and memory objects
-        clReleaseMemObject(srcMemA);
-        clReleaseMemObject(srcMemB);
-        clReleaseMemObject(dstMem);
+        clReleaseMemObject(srcCoordinates);
+        clReleaseMemObject(srcCoefficients);
+        clReleaseMemObject(dstReco);
         clReleaseKernel(kernel);
         clReleaseProgram(program);
         clReleaseCommandQueue(commandQueue);
         clReleaseContext(context);
         
-        // Verify the result
-        float[] check = mat_mul(n,srcArrayA,srcArrayB);
-        boolean passed = true;
-        final float epsilon = 1e-7f;
-        for (int i=0; i<srcArrayA.length; i++)
-        {
-            float x = dstArray[i];
-            float y = check[i];
-            boolean epsilonEqual = Math.abs(x - y) <= epsilon * Math.abs(x);
-            if (!epsilonEqual)
+        /* 
+            // Verify the result
+            float[] check = mat_mul(n,srcArrayA,srcArrayB);
+            boolean passed = true;
+            final float epsilon = 1e-7f;
+            for (int i=0; i<srcArrayA.length; i++)
             {
-                passed = false;
-                break;
+                float x = dstArray[i];
+                float y = check[i];
+                boolean epsilonEqual = Math.abs(x - y) <= epsilon * Math.abs(x);
+                if (!epsilonEqual)
+                {
+                    passed = false;
+                    break;
+                }
             }
-        }
-        System.out.println("Test "+(passed?"PASSED":"FAILED"));
-        if (n <= srcArrayA.length)
-        {
-            System.out.println("GPU: "+Arrays.toString(dstArray));
-            System.out.println("CPU: "+Arrays.toString(check));
-        }
+            System.out.println("Test "+(passed?"PASSED":"FAILED"));
+            if (n <= srcArrayA.length)
+            {
+                System.out.println("GPU: "+Arrays.toString(dstArray));
+                System.out.println("CPU: "+Arrays.toString(check));
+            }
+        */
+        return reco;
     }
 
     private static float[] mat_mul(int N,float[] a, float[] b){
