@@ -111,27 +111,28 @@ __kernel void views_to_global(const int camNo,const int points, __global const f
     float L1[3*maxMatrixRows]  = {0};    //A into the pseudo_inverse
     float L2[maxMatrixRows]  = {0};  //y into the pseudo_inverse
     float x[3] = {0};    //Return the reconstructed coordinates
+    pointStride = gid*camNo*2;
     //Prep matrices for solving Ax = y
     for (i =0;i<camNo;++i){
-        camStride = i*camNo;
+        camStride = i*camNo*2;
         coeffStride = i*11;
-        L2[2*i] = coefficients[coeffStride+3]- coordinates[camStride+0];
-        L2[2*i+1] = coefficients[coeffStride+7]- coordinates[camStride+1];
+        L2[2*i] = coefficients[coeffStride+3]- coordinates[pointStride+camStride+0];
+        L2[2*i+1] = coefficients[coeffStride+7]- coordinates[pointStride+camStride+1];
     }
     
-    pointStride = gid*camNo*2;
+    
     for (int i = 0;i<camNo;++i){
-        camStride = i*camNo;
+        camStride = i*camNo*2;
         coeffStride = i*11;
-        L1[2*3*camStride+0]	=coefficients[coeffStride+8]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+0];
-        L1[2*3*camStride+1]	=coefficients[coeffStride+9]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+1];
-        L1[2*3*camStride+2]	=coefficients[coeffStride+10]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+2];
-        L1[2*3*camStride+3]	=coefficients[coeffStride+8]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+4];
-        L1[2*3*camStride+4]	=coefficients[coeffStride+9]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+5];
-        L1[2*3*camStride+5]	=coefficients[coeffStride+10]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+6];
+        L1[2*3*i+0]	=coefficients[coeffStride+8]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+0];
+        L1[2*3*i+1]	=coefficients[coeffStride+9]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+1];
+        L1[2*3*i+2]	=coefficients[coeffStride+10]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+2];
+        L1[2*3*i+3]	=coefficients[coeffStride+8]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+4];
+        L1[2*3*i+4]	=coefficients[coeffStride+9]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+5];
+        L1[2*3*i+5]	=coefficients[coeffStride+10]*coordinates[pointStride+camStride+1]-coefficients[coeffStride+6];
     }
     
-    pseudo_inverse(camNo*2,L2,L1,x);   //Solve the group of equations
+    pseudo_inverse(camNo*2,L1,L2,x);   //Solve the group of equations
     recoStride = gid*3;
     for (i =  0;i<3;++i){
         reco[recoStride+i]=x[i]; //set the return values
