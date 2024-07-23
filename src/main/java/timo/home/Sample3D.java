@@ -95,13 +95,16 @@ public class Sample3D extends JFrame{
 					digitized[r][c-4] = digitized[r][c]/5d;	//The .txt files contain multiple rows -> pop the X and Y into the correct columns and scale down by five..
 				}
 				
+				confirm[r][0] = digitized[r][0];
+				confirm[r][1] = digitized[r][1];
+
 				//Set 50% of coordinates to null
 				if (r % 2 > 0){
-					confirm[r][0] = digitized[r][0];
-					confirm[r][1] = digitized[r][1]; 
+					//confirm[r][0] = digitized[r][0];
+					//confirm[r][1] = digitized[r][1]; 
 					digitized[r] = null;
 				}else{
-					confirm[r] = null;
+					//confirm[r] = null;
 				}
 				//System.out.println("");	
 			}
@@ -205,9 +208,17 @@ public class Sample3D extends JFrame{
 				}
 			}
 		}
-		//Run 2D to 3D with JOCL
-		float[] jocl3d = JOCL_views_to_3D.testJOCL(2,undistortedUnknown[0].length,camCoordinatesToJOCL,dltCoeffsToJOCL);
-		
+		//Run 2D to 3D with JOCL 
+		long joclInit = System.currentTimeMillis();
+		JOCL_views_to_3D jocl = new JOCL_views_to_3D();
+		long joclStart = System.currentTimeMillis();
+		float[] jocl3d = jocl.testJOCL(2,undistortedUnknown[0].length,camCoordinatesToJOCL,dltCoeffsToJOCL);
+		long joclDone = System.currentTimeMillis();
+		jocl.cleanUp();
+		jocl = null;
+
+		//Compute Apache coordinates in a loop to get a comparison to jocl
+
 		for (int i =0;i<unknownUndistorted3D.length;++i){
 			if (undistortedUnknown[0][i] != null){
 				tempC = dlt3d.scaleCoordinates(new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
@@ -215,10 +226,12 @@ public class Sample3D extends JFrame{
 				double[] apache3D = DLT3D_apache_math3.scaleCoordinates(apacheCoeffs,new double[][]{undistortedUnknown[0][i],undistortedUnknown[1][i]});
 				System.out.println(String.format("Jama %d x %.1f y %.1f z %.1f",i,tempC.get(0,0),tempC.get(1,0),tempC.get(2,0)));
 				System.out.println(String.format("Apache %d x %.1f y %.1f z %.1f",i,apache3D[0],apache3D[1],apache3D[2]));
+				System.out.println(String.format("JOCL %d x %.1f y %.1f z %.1f",i,jocl3d[3*i+0],jocl3d[3*i+1],jocl3d[3*i+2]));
 			}else{
 				unknownUndistorted3D[i] = null;
 			}
-		}	
+		}
+		System.out.println(String.format("Init took %.4f JOCL took %.4f",((double) (joclStart-joclInit))/1000d,((double) (joclDone-joclStart))/1000d));	
 		
 		ip[2].plotCoordinates(ud[0].projectKnownPoints(unknownUndistorted3D, Rt[0][0], Rt[0][1]), new Color(0,0,255));
 		ip[3].plotCoordinates(ud[1].projectKnownPoints(unknownUndistorted3D, Rt[1][0], Rt[1][1]), new Color(0,0,255));
