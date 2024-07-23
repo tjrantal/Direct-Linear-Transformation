@@ -1,20 +1,7 @@
-#define maxMatrixRows 2*36 //camNo*2 needed at minimum;
-
-__kernel void mat_mul(const int N, __global float *A,
-__global float *B, __global float *C){
-    int i = get_global_id(0);
-    int j = get_global_id(1);
-    int k;
-    float tmp = 0.0f;
-    for (k = 0; k < N; k++) {
-        // C(i, j) = sum(over k) A(i,k) * B(k,j)
-        tmp += A[i*N+k] * B[k*N+j];
-    }
-    C[i*N+j] = tmp;
-}
+#define maxMatrixRows 2*36 //camNo*2 needed at minimum, allow max 36 cams;
 
 /*
-    Solve group of equations using pseudo inverse
+    Solve group of equations using pseudo inverse (implementation from ChatGPT)
     matrixRows = rows in matrix A (and vector y)
     A = matrix A (matrixRows x width)
     y = solution to Ax = y
@@ -111,10 +98,10 @@ __kernel void views_to_global(const int camNo,const int points, __global const f
     float L1[3*maxMatrixRows]  = {0};    //A into the pseudo_inverse
     float L2[maxMatrixRows]  = {0};  //y into the pseudo_inverse
     float x[3] = {0};    //Return the reconstructed coordinates
-    pointStride = gid*camNo*2;
+    pointStride = gid*camNo*2;  // 2 coordinates per view x views x current point
     //Prep matrices for solving Ax = y
     for (i =0;i<camNo;++i){
-        camStride = i*camNo*2;
+        camStride = i*2;
         coeffStride = i*11;
         L2[2*i] = coefficients[coeffStride+3]- coordinates[pointStride+camStride+0];
         L2[2*i+1] = coefficients[coeffStride+7]- coordinates[pointStride+camStride+1];
@@ -122,7 +109,7 @@ __kernel void views_to_global(const int camNo,const int points, __global const f
     
     
     for (int i = 0;i<camNo;++i){
-        camStride = i*camNo*2;
+        camStride = i*2;
         coeffStride = i*11;
         L1[2*3*i+0]	=coefficients[coeffStride+8]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+0];
         L1[2*3*i+1]	=coefficients[coeffStride+9]*coordinates[pointStride+camStride+0]-coefficients[coeffStride+1];

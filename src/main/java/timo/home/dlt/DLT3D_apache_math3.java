@@ -108,6 +108,85 @@ public class DLT3D_apache_math3{
 			L1[2*i+1][2]	=coefficients[i][10]*coordinates[i][1]-coefficients[i][6];
 		}
 		return (solveVectorUsingSVD(MatrixUtils.createRealMatrix(L1), MatrixUtils.createRealVector(L2))).toArray();
+		//return pseudo_inverse(L1, L2);
+	}
+
+	public static double[] pseudo_inverse(double[][] A, double[] y){
+		double[][] AT = new double[3][A.length];
+		int i,j,k;
+		for (i = 0; i < A.length; ++i) {
+			for (j = 0; j < 3; ++j) {
+				AT[j][i] = A[i][j];// * 3 + j];
+			}
+		}
+	
+		// Step 2: Compute AT * A (resulting in 3x3 matrix)
+		double[][] ATA = new double[3][3];
+		for (i = 0; i < 3; ++i) {
+			for (j = 0; j < 3; ++j) {
+				for (k = 0; k < A.length; ++k) {
+					ATA[i][j] += AT[i][k] * A[k][j];// * 3 + j];
+				}
+			}
+		}
+	
+		// Step 3: Compute the inverse of ATA
+		// Load ATA into local variables for convenience
+		double a00 = ATA[0][0], a01 = ATA[0][1], a02 = ATA[0][2];
+		double a10 = ATA[1][0], a11 = ATA[1][1], a12 = ATA[1][2];
+		double a20 = ATA[2][0], a21 = ATA[2][1], a22 = ATA[2][2];
+	
+		// Compute the determinant of ATA
+		double det = a00 * (a11 * a22 - a21 * a12) 
+				  - a01 * (a10 * a22 - a20 * a12) 
+				  + a02 * (a10 * a21 - a20 * a11);
+	
+		// If the determinant is zero, the matrix is not invertible.
+		if (det == 0d) {
+			// Handle non-invertible case (could set to identity matrix or handle error)
+			// For now, we'll just set it to the identity matrix
+			ATA[0][0] = 1.0d; ATA[0][1] = 0.0d; ATA[0][2] = 0.0d;
+			ATA[1][0] = 0.0d; ATA[1][1] = 1.0d; ATA[1][2] = 0.0d;
+			ATA[2][0] = 0.0d; ATA[2][1] = 0.0d; ATA[2][2] = 1.0d;
+		} else {
+			// Compute the adjugate of ATA (transposed cofactor matrix)
+			double[][] adj = new double[3][3];
+			adj[0][0] =  (a11 * a22 - a21 * a12);
+			adj[0][1] = -(a01 * a22 - a21 * a02);
+			adj[0][2] =  (a01 * a12 - a11 * a02);
+			adj[1][0] = -(a10 * a22 - a20 * a12);
+			adj[1][1] =  (a00 * a22 - a20 * a02);
+			adj[1][2] = -(a00 * a12 - a10 * a02);
+			adj[2][0] =  (a10 * a21 - a20 * a11);
+			adj[2][1] = -(a00 * a21 - a20 * a01);
+			adj[2][2] =  (a00 * a11 - a10 * a01);
+	
+			// Divide each element of the adjugate by the determinant to get the inverse
+			double inv_det = 1.0d / det;
+			for (i = 0; i < 3; ++i) {
+				for (j = 0; j < 3; ++j) {
+					ATA[i][j] = adj[i][j] * inv_det;
+				}
+			}
+		}
+	
+		// Step 4: Compute AT * y (resulting in 3x1 vector)
+		double[] ATy = new double[3];// = {0};
+		for (i = 0; i < 3; ++i) {
+			for (j = 0; j < A.length; ++j) {
+				ATy[i] += AT[i][j] * y[j];
+			}
+		}
+	
+		// Step 5: Compute x = ATA_inv * ATy
+		double[] x = new double[3];
+		for (i = 0; i < 3; ++i) {
+			x[i] = 0;
+			for (j = 0; j < 3; ++j) {
+				x[i] += ATA[i][j] * ATy[j];
+			}
+		}
+		return x;
 	}
 
 	//Project known 3D coordinates into the camera view
